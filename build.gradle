@@ -119,7 +119,7 @@ task addToPluginMetadata {
         plugin.appendChild(nameElem)
         
         Element descElem = doc.createElement('description')
-        descElem.setTextContent('Create mod lists from Curse mods from inside of the IDE')
+        descElem.setTextContent('Create mod lists for Curse mods from inside of the IDE')
         plugin.appendChild(descElem)
         
         Element ideaVersion = doc.createElement('idea-version')
