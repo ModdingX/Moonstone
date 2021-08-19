@@ -1,0 +1,157 @@
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
+
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.Transformer
+
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+
+plugins {
+    id 'java'
+    id 'scala'
+    id 'org.jetbrains.intellij' version '1.1.4'
+    id 'maven-publish'
+}
+
+group 'io.github.noeppi_noeppi.tools'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.13.6'
+}
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    pluginName.set('Minecraft Moonstone')
+    type.set('IC')
+    version.set('2021.2')
+    downloadSources.set(true)
+    
+    plugins.set(['java', 'gradle'])
+}
+
+patchPluginXml {
+    pluginId.set(project.pluginId)
+    version.set(project.version)
+    sinceBuild.set(project.sinceBuild)
+    untilBuild.set(project.untilBuild)
+}
+
+task fatjar(type: Jar) {
+    archiveClassifier = "fatjar"
+    manifest = jar.manifest
+    with jar
+}
+build.dependsOn fatjar
+
+task configureFatJar {
+    doLast {
+        configurations.runtimeClasspath.each { dep ->
+            fatjar.from(project.zipTree(dep)) {
+                exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+                duplicatesStrategy DuplicatesStrategy.INCLUDE
+            }
+        }
+    }
+    outputs.upToDateWhen { false }
+}
+fatjar.dependsOn configureFatJar
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+build.dependsOn sourcesJar
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
+            artifact jar
+            artifact fatjar
+            artifact sourcesJar
+            pom {
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url '../MinecraftUtilities/maven'
+        }
+    }
+}
+
+task addToPluginMetadata {
+    outputs.upToDateWhen { false }
+    doLast {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
+        factory.setIgnoringElementContentWhitespace(true)
+        DocumentBuilder builder = factory.newDocumentBuilder()
+
+        Document doc = builder.parse(project.file('../MinecraftUtilities/maven/updatePlugins.xml'))
+
+        Element plugin = doc.createElement('plugin')
+        plugin.setAttribute('id', project.pluginId)
+        plugin.setAttribute('url', "https://noeppi-noeppi.github.io/MinecraftUtilities/maven/${project.group.toString().replace('.', '/')}/${project.name}/${project.version}/${project.name}-${project.version}-fatjar.jar")
+        plugin.setAttribute('version', project.version.toString())
+        
+        Element nameElem = doc.createElement('name')
+        nameElem.setTextContent('Minecraft Moonstone')
+        plugin.appendChild(nameElem)
+        
+        Element descElem = doc.createElement('description')
+        descElem.setTextContent('Create mod lists from Curse mods from inside of the IDE')
+        plugin.appendChild(descElem)
+        
+        Element ideaVersion = doc.createElement('idea-version')
+        ideaVersion.setAttribute('since-build', project.sinceBuild)
+        ideaVersion.setAttribute('until-build', project.untilBuild)
+        plugin.appendChild(ideaVersion)
+
+        Element plugins = doc.getElementsByTagName("plugins").item(0)
+        for (int i = plugins.getChildNodes().length - 1; i >= 0; i--) {
+            if (plugins.getChildNodes().item(i).nodeType == Node.TEXT_NODE && plugins.getChildNodes().item(i).textContent.trim().isEmpty()) {
+                plugins.removeChild(plugins.getChildNodes().item(i))
+            }
+        }
+        
+        NodeList pluginNodes = plugins.getElementsByTagName("plugin")
+        boolean added = false
+        for (int i = 0; i < pluginNodes.length; i++) {
+            if (pluginNodes.item(i).getAttributes().getNamedItem("id").textContent == project.pluginId) {
+                plugins.replaceChild(plugin, pluginNodes.item(i))
+                added = true
+                break
+            }
+        }
+        if (!added) {
+            plugins.appendChild(plugin)
+        }
+        
+        Transformer t = TransformerFactory.newInstance().newTransformer()
+        t.setOutputProperty(OutputKeys.INDENT, "yes")
+        t.setOutputProperty(OutputKeys.METHOD, "xml")
+        t.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
+        t.transform(new DOMSource(doc), new StreamResult(new FileOutputStream(project.file('../MinecraftUtilities/maven/updatePlugins.xml'))))
+    }
+}
+afterEvaluate { publish.finalizedBy addToPluginMetadata }

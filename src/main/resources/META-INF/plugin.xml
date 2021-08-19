@@ -1,0 +1,15 @@
+<idea-plugin>
+    <name>Minecraft Moonstone</name>
+    <vendor email="invalid@invalid.invalid" url="https://github.com/noeppi-noeppi/Moonstone">noeppi_noeppi</vendor>
+
+    <description>Create mod lists from Curse mods from inside of the IDE</description>
+    <change-notes>Change notes.</change-notes>
+
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.gradle</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="Moonstone" implementationClass="io.github.noeppi_noeppi.tools.moonstone.file.MoonStoneFileType$" fieldName="MODULE$" patterns="modlist.json" />
+        <fileEditorProvider implementation="io.github.noeppi_noeppi.tools.moonstone.file.MoonStoneEditorProvider" />
+    </extensions>
+</idea-plugin>
