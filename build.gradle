@@ -137,7 +137,8 @@ task addToPluginMetadata {
         NodeList pluginNodes = plugins.getElementsByTagName("plugin")
         boolean added = false
         for (int i = 0; i < pluginNodes.length; i++) {
-            if (pluginNodes.item(i).getAttributes().getNamedItem("id").textContent == project.pluginId) {
+            if (pluginNodes.item(i).getAttributes().getNamedItem("id").textContent == project.pluginId
+                    && pluginNodes.item(i).getAttributes().getNamedItem("version").textContent == project.version.toString()) {
                 plugins.replaceChild(plugin, pluginNodes.item(i))
                 added = true
                 break
