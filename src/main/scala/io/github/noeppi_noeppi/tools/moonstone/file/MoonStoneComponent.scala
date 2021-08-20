@@ -10,11 +10,16 @@ import io.github.noeppi_noeppi.tools.moonstone.display.part.{PackConfigSelection
 import io.github.noeppi_noeppi.tools.moonstone.{PackConfig, Util}
 
 import java.awt.event.{KeyAdapter, KeyEvent}
+import java.util.concurrent.{ExecutorService, ScheduledThreadPoolExecutor}
 import javax.swing._
+import javax.swing.event.ChangeEvent
 
 class MoonStoneComponent(val project: Project, val file: VirtualFile, private val modify: () => Unit) extends JPanel with Disposable {
   
-  private val modList = new ModList(project, file, () => currentConfig(), () => rebuild(), modify)
+  private val rebuildExecutor: ExecutorService = new ScheduledThreadPoolExecutor(1)
+  private val state = new StateHolder
+  
+  private val modList = new ModList(project, file, this, modify)
   private lazy val detectedConfig = Util.detectConfig(project)
   
   private val installedMods: ModListComponent = new ModListComponent
@@ -23,19 +28,37 @@ class MoonStoneComponent(val project: Project, val file: VirtualFile, private va
   private val searchMods: ModListComponent = new ModListComponent
   private val selectionComponent: Option[PackConfigSelection] = detectedConfig match {
     case Some(_) => None
-    case None => Some(new PackConfigSelection(() => rebuild()))
+    case None => Some(new PackConfigSelection(() => rebuild {}))
   }
   
-  private def currentConfig(): PackConfig = {
+  def currentConfig(): PackConfig = {
     detectedConfig.orElse(selectionComponent.map(_.getCurrentConfig)).getOrElse(PackConfig("1.16.5", "Forge"))
   }
   
-  private def rebuild(): Unit = {
-    SwingUtilities.invokeLater(() => {
-      installedMods.buildList(modList.installed())
-      dependencyMods.buildList(modList.dependencies())
-      searchMods.buildList(modList.search(searchQuery.getText))
+  def rebuild(action: => Unit): Unit = {
+    Util.waitForDispatch {
+      installedMods.startLoad()
+      dependencyMods.startLoad()
+      searchMods.startLoad()
       repaint()
+    }
+    rebuildExecutor.submit(new Runnable {
+      override def run(): Unit = {
+        state.reset()
+        action
+        state.buildCurrent()
+        repaint()
+      }
+    })
+  }
+  
+  private def changeState(action: => Unit): Unit = {
+    rebuildExecutor.submit(new Runnable {
+      override def run(): Unit = {
+        action
+        state.buildCurrent()
+        repaint()
+      }
     })
   }
   
@@ -51,6 +74,8 @@ class MoonStoneComponent(val project: Project, val file: VirtualFile, private va
   }
   
   private val tabbedView: JTabbedPane = new JBTabbedPane()
+  tabbedView.addChangeListener((_: ChangeEvent) => changeState {})
+  
   tabbedView.addTab("Installed", scrollable(installedMods))
   tabbedView.addTab("Dependencies", scrollable(dependencyMods))
   
@@ -61,7 +86,13 @@ class MoonStoneComponent(val project: Project, val file: VirtualFile, private va
       override def keyPressed(e: KeyEvent): Unit = {
         if (e.getKeyCode == KeyEvent.VK_ENTER || e.getKeyChar == '\n') {
           e.consume()
-          rebuild()
+          changeState {
+            state.resetSearch()
+            Util.waitForDispatch {
+              searchMods.startLoad()
+              repaint()
+            }
+          }
         }
       }
     })
@@ -72,9 +103,53 @@ class MoonStoneComponent(val project: Project, val file: VirtualFile, private va
   
   add(tabbedView)
   
-  rebuild()
+  rebuild {}
   
   private def scrollable(c: JComponent): JScrollPane = {
     new JBScrollPane(c, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
+  }
+  
+  private class StateHolder {
+
+    private var builtInstalled = false
+    private var builtDependencies = false
+    private var builtSearch = false
+    
+    def reset(): Unit = {
+      builtInstalled = false
+      builtDependencies = false
+      builtSearch = false
+    }
+    
+    def resetSearch(): Unit = {
+      builtSearch = false
+    }
+    
+    def buildCurrent(): Unit = {
+      tabbedView.getSelectedIndex match {
+        case 0 if !builtInstalled =>
+          builtInstalled = true
+          val installedModList = modList.installed()
+          installedModList.foreach(_.resolve())
+          Util.dispatch {
+            installedMods.buildList(installedModList)
+          }
+        case 1 if !builtDependencies =>
+          builtDependencies = true
+          val dependencyModList = modList.dependencies()
+          dependencyModList.foreach(_.resolve())
+          Util.dispatch {
+            dependencyMods.buildList(dependencyModList)
+          }
+        case 2 if !builtSearch =>
+          builtSearch = true
+          val searchModList = modList.search(searchQuery.getText)
+          searchModList.foreach(_.resolve())
+          Util.dispatch {
+            searchMods.buildList(searchModList)
+          }
+        case _ =>
+      }
+    }
   }
 }

@@ -6,6 +6,12 @@ import scala.collection.mutable.ListBuffer
 
 class ModListComponent() extends JPanel {
   
+  def startLoad(): Unit = {
+    removeAll()
+    setLayout(new FlowLayout())
+    add(new JLabel("Loading..."))
+  }
+  
   def buildList(mods: List[ModUnit]): Unit = {
     removeAll()
     if (mods.isEmpty) {

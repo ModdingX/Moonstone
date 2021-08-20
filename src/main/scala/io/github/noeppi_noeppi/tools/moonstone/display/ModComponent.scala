@@ -2,6 +2,7 @@ package io.github.noeppi_noeppi.tools.moonstone.display
 
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.{ComboBox, InputValidator, Messages}
+import io.github.noeppi_noeppi.tools.moonstone.Util
 import io.github.noeppi_noeppi.tools.moonstone.display.part.JImage
 import io.github.noeppi_noeppi.tools.moonstone.model.Side
 
@@ -26,7 +27,11 @@ class ModComponent(unit: ModUnit) extends JPanel {
   }
   unit.addImageResolveListener(() => {
     // We might be called at any time where we are invalid again
-    if (this.isValid) SwingUtilities.invokeLater(() => this.repaint())
+    if (this.isValid) {
+      Util.dispatch {
+        this.repaint()
+      }
+    }
   })
 
   spring.putConstraint(WEST, logo, 3, WEST, this)

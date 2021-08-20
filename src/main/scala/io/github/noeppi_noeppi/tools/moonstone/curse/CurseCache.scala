@@ -8,7 +8,7 @@ import io.github.noeppi_noeppi.tools.moonstone.util.PendingFuture
 import java.awt.image.BufferedImage
 import java.net.{MalformedURLException, URL}
 import java.util.{Calendar, Locale}
-import java.util.concurrent.{ExecutorService, Future, ScheduledThreadPoolExecutor}
+import java.util.concurrent.{ExecutorService, Future, ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import javax.imageio.ImageIO
 import javax.xml.bind.DatatypeConverter
 import scala.collection.mutable
@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters._
 
 class CurseCache extends Disposable {
 
-  private val assetDownloader: ExecutorService = new ScheduledThreadPoolExecutor(1)
+  private val assetDownloader: ScheduledExecutorService = new ScheduledThreadPoolExecutor(5)
   
   private val projectEntries = mutable.Map[Int, ProjectEntry]()
   private val fileEntries = mutable.Map[(Int, Int), FileEntry]()
@@ -139,9 +139,7 @@ class CurseCache extends Disposable {
       }
     }).flatten
   })
-
   
-
   private val EMPTY_PROJECT = ProjectEntry("", "", "", None, PendingFuture.instance)
   private val EMPTY_FILE = FileEntry("", Set(), Set())
   

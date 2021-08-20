@@ -1,12 +1,16 @@
 package io.github.noeppi_noeppi.tools.moonstone
 
 import com.google.gson.{Gson, GsonBuilder}
+import com.intellij.openapi.application.{ApplicationManager, ModalityState}
 import com.intellij.openapi.project.Project
 import io.github.noeppi_noeppi.tools.moonstone.util.PendingFuture
 import org.jetbrains.plugins.gradle.settings.GradleExtensionsSettings
 
+import java.awt.EventQueue
 import java.io.InputStream
-import java.util.concurrent.Future
+import java.util.concurrent.{Future, FutureTask, TimeUnit}
+import javax.swing.SwingUtilities
+import scala.concurrent.{CancellationException, ExecutionException, TimeoutException}
 
 object Util {
 
@@ -35,7 +39,50 @@ object Util {
   
   def query[T](future: Future[T]): Option[T] = future match {
     case PendingFuture => None
-    case f if f.isDone => Some(f.get())
+    case f: FutureTask[T] =>
+      try {
+        // FutureTask is weird. (Timeout = 0 means no time out, use 1 instead)
+        Some(f.get(1, TimeUnit.MILLISECONDS))
+      } catch {
+        case _: TimeoutException | _: CancellationException | _: ExecutionException => None
+      }
+    case f if f.isDone =>
+      try {
+        Some(f.get())
+      } catch {
+        case _: CancellationException | _: ExecutionException => None
+      }
     case _ => None
+  }
+  
+  def dispatch(action: => Unit): Unit = {
+    if (EventQueue.isDispatchThread) {
+      action
+    } else {
+      //noinspection ConvertExpressionToSAM
+      SwingUtilities.invokeLater(new Runnable {
+        override def run(): Unit = action
+      })
+    }
+  }
+  
+  def waitForDispatch(action: => Unit): Unit = {
+    if (EventQueue.isDispatchThread) {
+      action
+    } else {
+      //noinspection ConvertExpressionToSAM
+      SwingUtilities.invokeAndWait(new Runnable {
+        override def run(): Unit = action
+      })
+    }
+  }
+  
+  def writeAction(action: => Unit): Unit = {
+    //noinspection ConvertExpressionToSAM
+    ApplicationManager.getApplication.invokeAndWait(new Runnable {
+      override def run(): Unit = ApplicationManager.getApplication.runWriteAction(new Runnable {
+        override def run(): Unit = action
+      })
+    }, ModalityState.NON_MODAL)
   }
 }

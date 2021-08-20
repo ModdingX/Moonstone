@@ -1,7 +1,7 @@
 package io.github.noeppi_noeppi.tools.moonstone.model
 
 import com.google.gson.{JsonArray, JsonSyntaxException}
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.{ApplicationManager, TransactionGuard}
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import io.github.noeppi_noeppi.tools.moonstone.Util
@@ -52,13 +52,11 @@ class FileList(val project: Project, val file: VirtualFile, private val modify: 
       entry.addProperty("installed", false)
       json.add(entry)
     }
-    ApplicationManager.getApplication.runWriteAction(new Runnable {
-      override def run(): Unit = {
-        val writer = new OutputStreamWriter(file.getOutputStream(this))
-        writer.write(Util.GSON.toJson(json) + "\n")
-        writer.close()
-      }
-    })
+    Util.writeAction {
+      val writer = new OutputStreamWriter(file.getOutputStream(this))
+      writer.write(Util.GSON.toJson(json) + "\n")
+      writer.close()
+    }
   }
   
   def installedFiles: Set[FileInfo] = installed.values.toSet
