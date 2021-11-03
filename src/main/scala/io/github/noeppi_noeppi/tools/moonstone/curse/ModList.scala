@@ -10,6 +10,7 @@ import io.github.noeppi_noeppi.tools.moonstone.model.{FileInfo, FileList, Side}
 
 import java.awt.image.BufferedImage
 import java.net.URL
+import java.util.Locale
 import scala.collection.mutable
 
 class ModList(val project: Project, val file: VirtualFile, component: MoonStoneComponent, modify: () => Unit) extends Disposable {
@@ -23,7 +24,7 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
   
   def dependencies(): List[ModUnit] = fileList.dependencyFiles
     .map(file => new BaseUnit(file, false))
-    .toList.sortBy(u => (!u.canUpdate, u.name))
+    .toList.sortBy(u => (!u.canUpdate, u.name.toLowerCase(Locale.ROOT)))
   
   def search(query: String): List[ModUnit] = CurseAPI.searchMods(query, component.currentConfig())
     .filter(!fileList.hasProject(_))
