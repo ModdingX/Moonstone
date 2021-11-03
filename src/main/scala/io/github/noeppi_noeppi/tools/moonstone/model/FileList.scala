@@ -29,7 +29,7 @@ class FileList(val project: Project, val file: VirtualFile, private val modify: 
           case Some(info) if !isInstalled =>
             dependencies.addOne(info.projectId -> info)
             installed.remove(info.projectId)
-          case None =>
+          case _ =>
         }
       }
     } else {
