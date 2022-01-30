@@ -21,14 +21,16 @@ plugins {
 
 group 'io.github.noeppi_noeppi.tools'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 
 repositories {
     mavenCentral()
+    maven { url 'https://noeppi-noeppi.github.io/MinecraftUtilities/maven' }
 }
 
 dependencies {
     implementation 'org.scala-lang:scala-library:2.13.6'
+    implementation 'io.github.noeppi_noeppi.tools:CurseWrapper:0.3'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/

@@ -12,7 +12,7 @@ class ModListComponent() extends JPanel {
     add(new JLabel("Loading..."))
   }
   
-  def buildList(mods: List[ModUnit]): Unit = {
+  def buildList(mods: Seq[ModUnit]): Unit = {
     removeAll()
     if (mods.isEmpty) {
       setLayout(new FlowLayout())

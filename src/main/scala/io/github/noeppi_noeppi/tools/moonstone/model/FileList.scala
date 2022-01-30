@@ -12,8 +12,8 @@ import scala.jdk.CollectionConverters._
 
 class FileList(val project: Project, val file: VirtualFile, private val modify: () => Unit) {
 
-  private val installed = mutable.Map[Int, FileInfo]()
-  private val dependencies = mutable.Map[Int, FileInfo]()
+  private val installed = mutable.Map[Int, FileEntry]()
+  private val dependencies = mutable.Map[Int, FileEntry]()
   
   try {
     val reader = new InputStreamReader(file.getInputStream)
@@ -22,7 +22,7 @@ class FileList(val project: Project, val file: VirtualFile, private val modify: 
     if (json != null) { // null for empty file
       for (elem <- json.asScala if elem.isJsonObject; entry = elem.getAsJsonObject) {
         val isInstalled = !entry.has("installed") || entry.get("installed").getAsBoolean
-        FileInfo.fromJson(entry) match {
+        FileEntry.fromJson(entry) match {
           case Some(info) if isInstalled =>
             installed.addOne(info.projectId -> info)
             dependencies.remove(info.projectId)
@@ -59,15 +59,15 @@ class FileList(val project: Project, val file: VirtualFile, private val modify: 
     }
   }
   
-  def installedFiles: Set[FileInfo] = installed.values.toSet
-  def dependencyFiles: Set[FileInfo] = dependencies.values.toSet
+  def installedFiles: Set[FileEntry] = installed.values.toSet
+  def dependencyFiles: Set[FileEntry] = dependencies.values.toSet
   
-  def installedMap: Map[Int, FileInfo] = installed.toMap
-  def dependencyMap: Map[Int, FileInfo] = dependencies.toMap
-  def allFiles: Map[Int, FileInfo] = Map.newBuilder.addAll(dependencies).addAll(installed).result()
+  def installedMap: Map[Int, FileEntry] = installed.toMap
+  def dependencyMap: Map[Int, FileEntry] = dependencies.toMap
+  def allFiles: Map[Int, FileEntry] = Map.newBuilder.addAll(dependencies).addAll(installed).result()
 
   def hasProject(projectId: Int): Boolean = installed.contains(projectId) || dependencies.contains(projectId)
-  def fileInfo(projectId: Int): Option[FileInfo] = installed.get(projectId).orElse(dependencies.get(projectId))
+  def fileInfo(projectId: Int): Option[FileEntry] = installed.get(projectId).orElse(dependencies.get(projectId))
   
   def remove(projectId: Int): Unit = {
     val b1 = installed.remove(projectId).isDefined
@@ -79,7 +79,7 @@ class FileList(val project: Project, val file: VirtualFile, private val modify: 
     if (dependencies.remove(projectId).isDefined) modify()
   }
   
-  def updateOrAddDependency(file: FileInfo): Unit = {
+  def updateOrAddDependency(file: FileEntry): Unit = {
     if (installed.contains(file.projectId)) {
       val removedDep = dependencies.remove(file.projectId).isDefined
       val hasChanges = file != installed(file.projectId)
@@ -96,7 +96,7 @@ class FileList(val project: Project, val file: VirtualFile, private val modify: 
     }
   }
   
-  def add(file: FileInfo, isInstalled: Boolean): Unit = {
+  def add(file: FileEntry, isInstalled: Boolean): Unit = {
     installed.remove(file.projectId)
     dependencies.remove(file.projectId)
     if (isInstalled) {

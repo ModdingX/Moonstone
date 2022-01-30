@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project
 import io.github.noeppi_noeppi.tools.moonstone.model.Side
 
 import java.awt.image.BufferedImage
-import java.net.URL
+import java.net.URI
 
 trait ModUnit {
 
@@ -13,7 +13,7 @@ trait ModUnit {
   def version: Option[String]
   def description: String
   def image(): Option[BufferedImage]
-  def url(): Option[URL]
+  def url(): Option[URI]
   def side(): Side
   def addImageResolveListener(listener: () => Unit): Unit
   def versionLockSuggestion(): Option[Int]

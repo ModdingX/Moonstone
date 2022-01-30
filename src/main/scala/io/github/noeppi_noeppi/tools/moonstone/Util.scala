@@ -46,7 +46,7 @@ object Util {
       } catch {
         case _: TimeoutException | _: CancellationException | _: ExecutionException => None
       }
-    case f if f.isDone =>
+    case f if f.isDone && !f.isCancelled =>
       try {
         Some(f.get())
       } catch {

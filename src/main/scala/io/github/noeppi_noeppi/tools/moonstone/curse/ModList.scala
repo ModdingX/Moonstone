@@ -6,10 +6,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import io.github.noeppi_noeppi.tools.moonstone.PackConfig
 import io.github.noeppi_noeppi.tools.moonstone.display.ModUnit
 import io.github.noeppi_noeppi.tools.moonstone.file.MoonStoneComponent
-import io.github.noeppi_noeppi.tools.moonstone.model.{FileInfo, FileList, Side}
+import io.github.noeppi_noeppi.tools.moonstone.model.{FileEntry, FileList, Side}
 
 import java.awt.image.BufferedImage
-import java.net.URL
+import java.net.URI
 import java.util.Locale
 import scala.collection.mutable
 
@@ -18,15 +18,15 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
   private val fileList = new FileList(project, file, modify)
   private val cache = new CurseCache
   
-  def installed(): List[ModUnit] = fileList.installedFiles
+  def installed(): Seq[ModUnit] = fileList.installedFiles
     .map(file => new BaseUnit(file, true))
-    .toList.sortBy(u => (!u.canUpdate, u.name))
+    .toSeq.sortBy(u => (!u.canUpdate, u.name))
   
-  def dependencies(): List[ModUnit] = fileList.dependencyFiles
+  def dependencies(): Seq[ModUnit] = fileList.dependencyFiles
     .map(file => new BaseUnit(file, false))
-    .toList.sortBy(u => (!u.canUpdate, u.name.toLowerCase(Locale.ROOT)))
+    .toSeq.sortBy(u => (!u.canUpdate, u.name.toLowerCase(Locale.ROOT)))
   
-  def search(query: String): List[ModUnit] = CurseAPI.searchMods(query, component.currentConfig())
+  def search(query: String): Seq[ModUnit] = cache.searchMods(query, component.currentConfig())
     .filter(!fileList.hasProject(_))
     .map(projectId => new SearchUnit(projectId))
   
@@ -46,7 +46,7 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
         fileList.removeDependency(currentDependency)
       }
       for (projectId <- dependencies.keySet) {
-        allFiles.get(projectId).orElse(fileIds.get(projectId).map(fileId => FileInfo(projectId, fileId, Side.COMMON, locked = false))) match {
+        allFiles.get(projectId).orElse(fileIds.get(projectId).map(fileId => FileEntry(projectId, fileId, Side.COMMON, locked = false))) match {
           case Some(base) => fileList.updateOrAddDependency(base.withSide(sideLookup(projectId)))
           case None =>
         }
@@ -55,14 +55,14 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
     }
   }
   
-  private def collectTransitiveDependencies(installed: Set[FileInfo], files: Map[Int, FileInfo]): (Map[Int, Set[Int]], Map[Int, Int]) = {
+  private def collectTransitiveDependencies(installed: Set[FileEntry], files: Map[Int, FileEntry]): (Map[Int, Set[Int]], Map[Int, Int]) = {
     val dependencies = mutable.Map[Int, Set[Int]]()
     val fileIds = mutable.Map[Int, Int]()
-    for (FileInfo(projectId, _, _, _) <- installed) collectTransitiveDependencies(projectId, component.currentConfig(), files, dependencies, fileIds)
+    for (FileEntry(projectId, _, _, _) <- installed) collectTransitiveDependencies(projectId, component.currentConfig(), files, dependencies, fileIds)
     (dependencies.toMap, fileIds.toMap)
   }
   
-  private def collectTransitiveDependencies(projectId: Int, cfg: PackConfig, files: Map[Int, FileInfo], dependencyMap: mutable.Map[Int, Set[Int]], fileIdMap: mutable.Map[Int, Int]): Set[Int] = {
+  private def collectTransitiveDependencies(projectId: Int, cfg: PackConfig, files: Map[Int, FileEntry], dependencyMap: mutable.Map[Int, Set[Int]], fileIdMap: mutable.Map[Int, Int]): Set[Int] = {
     if (!dependencyMap.contains(projectId)) {
       val set = Set.newBuilder[Int]
       val depFile = files.get(projectId).map(_.fileId).orElse(cache.projectLatest(projectId, cfg))
@@ -101,13 +101,13 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
     projectId => getSide(projectId).getOrElse(Side.COMMON)
   }
   
-  class BaseUnit(file: FileInfo, installed: Boolean) extends ModUnit {
+  class BaseUnit(file: FileEntry, installed: Boolean) extends ModUnit {
     
     override val project: Project = ModList.this.project
     override def name: String = cache.projectName(file.projectId)
     override def version: Option[String] = Some(cache.fileName(file.projectId, file.fileId))
     override def description: String = cache.projectDescription(file.projectId)
-    override def url(): Option[URL] = cache.projectUrl(file.projectId)
+    override def url(): Option[URI] = cache.projectUrl(file.projectId)
     override def side(): Side = file.side
     override def image(): Option[BufferedImage] = cache.projectImage(file.projectId)
     override def versionLockSuggestion(): Option[Int] = Some(file.fileId)
@@ -178,7 +178,7 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
     override def name: String = cache.projectName(projectId)
     override def version: Option[String] = None
     override def description: String = cache.projectDescription(projectId)
-    override def url(): Option[URL] = cache.projectUrl(projectId)
+    override def url(): Option[URI] = cache.projectUrl(projectId)
     override def side(): Side = Side.COMMON
     override def image(): Option[BufferedImage] = cache.projectImage(projectId)
     override def versionLockSuggestion(): Option[Int] = None
@@ -195,7 +195,7 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
       cache.projectLatest(projectId, component.currentConfig()) match {
         case Some(fileId) =>
           updateFileList {
-            fileList.add(FileInfo(projectId, fileId, Side.COMMON, locked = false), isInstalled = true)
+            fileList.add(FileEntry(projectId, fileId, Side.COMMON, locked = false), isInstalled = true)
           }
         case None =>
       }
