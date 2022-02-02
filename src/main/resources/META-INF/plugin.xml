@@ -2,7 +2,7 @@
     <name>Minecraft Moonstone</name>
     <vendor email="invalid@invalid.invalid" url="https://github.com/noeppi-noeppi/Moonstone">noeppi_noeppi</vendor>
 
-    <description>Create mod lists for Curse mods from inside of the IDE</description>
+    <description>Create mod lists for Curse mods from inside the IDE</description>
     <change-notes>Change notes.</change-notes>
 
     <depends>com.intellij.modules.java</depends>

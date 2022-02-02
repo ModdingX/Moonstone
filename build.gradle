@@ -30,7 +30,7 @@ repositories {
 
 dependencies {
     implementation 'org.scala-lang:scala-library:2.13.6'
-    implementation 'io.github.noeppi_noeppi.tools:CurseWrapper:0.3'
+    implementation 'io.github.noeppi_noeppi.tools:CurseWrapper:1.0'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
