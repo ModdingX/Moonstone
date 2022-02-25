@@ -3,7 +3,7 @@ package io.github.noeppi_noeppi.tools.moonstone.curse
 import com.intellij.openapi.Disposable
 import io.github.noeppi_noeppi.tools.cursewrapper.api.CurseWrapper
 import io.github.noeppi_noeppi.tools.cursewrapper.api.request.FileFilter
-import io.github.noeppi_noeppi.tools.cursewrapper.api.response.{Dependency, FileInfo, ModLoader, ProjectInfo, ReleaseType}
+import io.github.noeppi_noeppi.tools.cursewrapper.api.response.{Dependency, FileInfo, ModLoader, ProjectInfo, RelationType, ReleaseType}
 import io.github.noeppi_noeppi.tools.moonstone.util.PendingFuture
 import io.github.noeppi_noeppi.tools.moonstone.{PackConfig, Util}
 
@@ -68,7 +68,7 @@ class CurseCache extends Disposable {
   })
   
   def fileName(projectId: Int, fileId: Int): String = file(projectId, fileId).map(_.name()).getOrElse("")
-  def fileDependencies(projectId: Int, fileId: Int): Set[Int] = file(projectId, fileId).map(dep => dep.dependencies().asScala.map((dep: Dependency) => dep.projectId()).toSet).getOrElse(Set())
+  def fileDependencies(projectId: Int, fileId: Int): Set[Int] = file(projectId, fileId).map(dep => dep.dependencies().asScala.filter(_.`type` == RelationType.REQUIRED).map((dep: Dependency) => dep.projectId()).toSet).getOrElse(Set())
   
   def addImageResolveListener(projectId: Int, listener: () => Unit): Unit = currentListeners.synchronized {
     currentListeners.getOrElseUpdate(projectId, ListBuffer()).addOne(listener)
