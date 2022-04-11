@@ -6,8 +6,9 @@ import com.intellij.openapi.fileChooser.{FileChooser, FileChooserDescriptorFacto
 import io.github.noeppi_noeppi.tools.moonstone.Util
 import io.github.noeppi_noeppi.tools.moonstone.model.{FileEntry, Side}
 
-import java.io.{FileInputStream, FileWriter, IOException, InputStreamReader}
+import java.io.{FileInputStream, FileOutputStream, FileWriter, IOException, InputStreamReader}
 import java.nio.file.{FileSystems, Files, Paths, StandardCopyOption}
+import java.util.Properties
 
 class MoonstoneAction extends AnAction {
 
@@ -40,6 +41,21 @@ class MoonstoneAction extends AnAction {
           val writer = new FileWriter(projectRoot.resolve("modlist.json").toFile)
           writer.write(Util.GSON.toJson(modlist))
           writer.close()
+
+          // change pack version
+          val propertiesFile = projectRoot.resolve("gradle.properties")
+          if (!Files.exists(propertiesFile)) {
+            Files.createFile(propertiesFile)
+          }
+
+          val in = new FileInputStream(propertiesFile.toFile)
+          val props = new Properties()
+          props.load(in)
+          in.close()
+
+          val out = new FileOutputStream(propertiesFile.toFile)
+          props.setProperty("version", json.get("version").getAsString)
+          props.store(out, null)
         }
       } catch {
         case _: IOException => None
@@ -47,4 +63,3 @@ class MoonstoneAction extends AnAction {
     }
   }
 }
-
