@@ -31,6 +31,7 @@ class MoonstoneAction extends AnAction {
           val reader = new InputStreamReader(new FileInputStream(tempFile.toFile))
           val json = Util.GSON.fromJson(reader, classOf[JsonObject])
           reader.close()
+          tempFile.toFile.delete()
 
           val modlist = new JsonArray
           json.get("files").getAsJsonArray.forEach(entry => {
