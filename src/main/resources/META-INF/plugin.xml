@@ -12,4 +12,13 @@
         <fileType name="Moonstone" implementationClass="io.github.noeppi_noeppi.tools.moonstone.file.MoonStoneFileType$" fieldName="MODULE$" patterns="modlist.json" />
         <fileEditorProvider implementation="io.github.noeppi_noeppi.tools.moonstone.file.MoonStoneEditorProvider" />
     </extensions>
+
+    <actions>
+        <!--suppress PluginXmlCapitalization -->
+        <action id="io.github.noeppi_noeppi.tools.moonstone.action.MoonstoneAction"
+                class="io.github.noeppi_noeppi.tools.moonstone.action.MoonstoneAction" text="Import CurseForge modpack"
+                description="Opens a file selector to import an existing modpack based on exported zip.">
+            <add-to-group group-id="ToolsMenu" anchor="first"/>
+        </action>
+    </actions>
 </idea-plugin>
