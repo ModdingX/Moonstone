@@ -6,8 +6,8 @@ import com.intellij.openapi.fileChooser.{FileChooser, FileChooserDescriptorFacto
 import io.github.noeppi_noeppi.tools.moonstone.Util
 import io.github.noeppi_noeppi.tools.moonstone.model.{FileEntry, Side}
 
-import java.io.{FileInputStream, FileOutputStream, FileWriter, IOException, InputStreamReader}
-import java.nio.file.{FileSystems, Files, Paths, StandardCopyOption}
+import java.io.{FileInputStream, FileOutputStream, FileWriter, IOException}
+import java.nio.file.{FileSystems, Files, Paths}
 import java.util.Properties
 
 class MoonstoneAction extends AnAction {
@@ -25,13 +25,9 @@ class MoonstoneAction extends AnAction {
           val buildPath = projectRoot.resolve("build").resolve("tmp")
           Files.createDirectories(buildPath)
 
-          val tempFile = buildPath.resolve("manifest.json")
-          Files.copy(manifest, tempFile, StandardCopyOption.REPLACE_EXISTING)
-
-          val reader = new InputStreamReader(new FileInputStream(tempFile.toFile))
+          val reader = Files.newBufferedReader(manifest)
           val json = Util.GSON.fromJson(reader, classOf[JsonObject])
           reader.close()
-          tempFile.toFile.delete()
 
           val modlist = new JsonArray
           json.get("files").getAsJsonArray.forEach(entry => {
@@ -58,6 +54,8 @@ class MoonstoneAction extends AnAction {
           props.setProperty("version", json.get("version").getAsString)
           props.store(out, null)
         }
+
+        fs.close()
       } catch {
         case _: IOException => None
       }
