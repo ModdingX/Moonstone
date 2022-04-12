@@ -38,21 +38,6 @@ class MoonstoneAction extends AnAction {
           val writer = new FileWriter(projectRoot.resolve("modlist.json").toFile)
           writer.write(Util.GSON.toJson(modlist))
           writer.close()
-
-          // change pack version
-          val propertiesFile = projectRoot.resolve("gradle.properties")
-          if (!Files.exists(propertiesFile)) {
-            Files.createFile(propertiesFile)
-          }
-
-          val in = new FileInputStream(propertiesFile.toFile)
-          val props = new Properties()
-          props.load(in)
-          in.close()
-
-          val out = new FileOutputStream(propertiesFile.toFile)
-          props.setProperty("version", json.get("version").getAsString)
-          props.store(out, null)
         }
 
         fs.close()
