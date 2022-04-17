@@ -54,6 +54,6 @@ class ImportModpackAction extends AnAction {
   }
   
   private def showMessage(project: Project, title: String, msg: String): Unit = {
-    MessagesService.getInstance().showMessageDialog(project, null, msg, title, Array("oOk"), 0, 0, null, null, false, null)
+    MessagesService.getInstance().showMessageDialog(project, null, msg, title, Array("Ok"), 0, 0, null, null, false, null)
   }
 }
