@@ -15,9 +15,9 @@
 
     <actions>
         <!--suppress PluginXmlCapitalization -->
-        <action id="io.github.noeppi_noeppi.tools.moonstone.action.MoonstoneAction"
-                class="io.github.noeppi_noeppi.tools.moonstone.action.MoonstoneAction" text="Import CurseForge modpack"
-                description="Opens a file selector to import an existing modpack based on exported zip.">
+        <action id="io.github.noeppi_noeppi.tools.moonstone.action.ImportModpackAction"
+                class="io.github.noeppi_noeppi.tools.moonstone.action.ImportModpackAction" text="Import CurseForge modpack"
+                description="Opens a file selector to import an existing modpack based on an exported zip.">
             <add-to-group group-id="ToolsMenu" anchor="first"/>
         </action>
     </actions>
