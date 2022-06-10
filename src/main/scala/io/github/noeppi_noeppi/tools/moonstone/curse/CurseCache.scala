@@ -1,9 +1,9 @@
 package io.github.noeppi_noeppi.tools.moonstone.curse
 
 import com.intellij.openapi.Disposable
-import io.github.noeppi_noeppi.tools.cursewrapper.api.CurseWrapper
-import io.github.noeppi_noeppi.tools.cursewrapper.api.request.FileFilter
-import io.github.noeppi_noeppi.tools.cursewrapper.api.response.{Dependency, FileInfo, ModLoader, ProjectInfo, RelationType, ReleaseType}
+import org.moddingx.cursewrapper.api.CurseWrapper
+import org.moddingx.cursewrapper.api.request.FileFilter
+import org.moddingx.cursewrapper.api.response.{Dependency, FileInfo, ModLoader, ProjectInfo, RelationType, ReleaseType}
 import io.github.noeppi_noeppi.tools.moonstone.util.PendingFuture
 import io.github.noeppi_noeppi.tools.moonstone.{PackConfig, Util}
 
@@ -46,6 +46,7 @@ class CurseCache extends Disposable {
         }
     }
   }
+  def projectDistribution(projectId: Int): Boolean = project(projectId).map(_.distribution()).get
   
   private def projectImageFuture(projectId: Int): Future[BufferedImage] = projectThumbnailFutures.getOrElseUpdate(projectId, {
     project(projectId) match {

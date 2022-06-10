@@ -111,6 +111,7 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
     override def side(): Side = file.side
     override def image(): Option[BufferedImage] = cache.projectImage(file.projectId)
     override def versionLockSuggestion(): Option[Int] = Some(file.fileId)
+    override def distribution(): Boolean = cache.projectDistribution(file.projectId)
 
     override def addImageResolveListener(listener: () => Unit): Unit = cache.addImageResolveListener(file.projectId, listener)
 
@@ -182,6 +183,7 @@ class ModList(val project: Project, val file: VirtualFile, component: MoonStoneC
     override def side(): Side = Side.COMMON
     override def image(): Option[BufferedImage] = cache.projectImage(projectId)
     override def versionLockSuggestion(): Option[Int] = None
+    override def distribution(): Boolean = cache.projectDistribution(projectId)
 
     override def addImageResolveListener(listener: () => Unit): Unit = cache.addImageResolveListener(projectId, listener)
 
