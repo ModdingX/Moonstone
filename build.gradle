@@ -1,17 +1,3 @@
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
-
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.OutputKeys
-import javax.xml.transform.Transformer
-
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
-
 plugins {
     id 'java'
     id 'scala'
@@ -19,26 +5,25 @@ plugins {
     id 'maven-publish'
 }
 
-group 'io.github.noeppi_noeppi.tools'
+group 'org.moddingx'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 
 repositories {
     mavenCentral()
-    maven { url 'https://noeppi-noeppi.github.io/MinecraftUtilities/maven' }
     maven { url 'https://maven.moddingx.org/' }
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.13.6'
-    implementation 'org.moddingx:CurseWrapper:2.0'
+    implementation 'org.scala-lang:scala-library:2.13.8'
+    implementation 'org.moddingx:CurseWrapper:2.1'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     pluginName.set('Minecraft Moonstone')
     type.set('IC')
-    version.set('2021.2')
+    version.set('2022.1')
     downloadSources.set(true)
     
     plugins.set(['java', 'gradle'])
@@ -52,7 +37,7 @@ patchPluginXml {
 }
 
 task fatjar(type: Jar) {
-    archiveClassifier = "fatjar"
+    classifier "fatjar"
     manifest = jar.manifest
     with jar
 }
@@ -80,10 +65,7 @@ build.dependsOn sourcesJar
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = project.group
-            artifactId = project.name
-            version = project.version
-            artifact jar
+            from components.java
             artifact fatjar
             artifact sourcesJar
             pom {
@@ -98,78 +80,7 @@ publishing {
     }
     repositories {
         maven {
-            url '../MinecraftUtilities/maven'
-        }
-    }
-}
-
-task addToPluginMetadata {
-    outputs.upToDateWhen { false }
-    doLast {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
-        factory.setIgnoringElementContentWhitespace(true)
-        DocumentBuilder builder = factory.newDocumentBuilder()
-
-        Document doc = builder.parse(project.file('../MinecraftUtilities/maven/updatePlugins.xml'))
-
-        Element plugin = doc.createElement('plugin')
-        plugin.setAttribute('id', project.pluginId)
-        plugin.setAttribute('url', "https://noeppi-noeppi.github.io/MinecraftUtilities/maven/${project.group.toString().replace('.', '/')}/${project.name}/${project.version}/${project.name}-${project.version}-fatjar.jar")
-        plugin.setAttribute('version', project.version.toString())
-        
-        Element nameElem = doc.createElement('name')
-        nameElem.setTextContent('Minecraft Moonstone')
-        plugin.appendChild(nameElem)
-        
-        Element descElem = doc.createElement('description')
-        descElem.setTextContent('Create mod lists for Curse mods from inside the IDE')
-        plugin.appendChild(descElem)
-        
-        Element ideaVersion = doc.createElement('idea-version')
-        ideaVersion.setAttribute('since-build', project.sinceBuild)
-        ideaVersion.setAttribute('until-build', project.untilBuild)
-        plugin.appendChild(ideaVersion)
-
-        Element plugins = doc.getElementsByTagName("plugins").item(0)
-        for (int i = plugins.getChildNodes().length - 1; i >= 0; i--) {
-            if (plugins.getChildNodes().item(i).nodeType == Node.TEXT_NODE && plugins.getChildNodes().item(i).textContent.trim().isEmpty()) {
-                plugins.removeChild(plugins.getChildNodes().item(i))
-            }
-        }
-        
-        NodeList pluginNodes = plugins.getElementsByTagName("plugin")
-        boolean added = false
-        for (int i = 0; i < pluginNodes.length; i++) {
-            if (pluginNodes.item(i).getAttributes().getNamedItem("id").textContent == project.pluginId
-                    && pluginNodes.item(i).getAttributes().getNamedItem("version").textContent == project.version.toString()) {
-                plugins.replaceChild(plugin, pluginNodes.item(i))
-                added = true
-                break
-            }
-        }
-        if (!added) {
-            plugins.appendChild(plugin)
-        }
-
-        removeWhitespace(doc)
-        
-        Transformer t = TransformerFactory.newInstance().newTransformer()
-        t.setOutputProperty(OutputKeys.INDENT, "yes")
-        t.setOutputProperty(OutputKeys.METHOD, "xml")
-        t.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
-        t.transform(new DOMSource(doc), new StreamResult(new FileOutputStream(project.file('../MinecraftUtilities/maven/updatePlugins.xml'))))
-    }
-}
-afterEvaluate { publish.finalizedBy addToPluginMetadata }
-
-static Node removeWhitespace(Node node) {
-    NodeList children = node.getChildNodes()
-    for(int i = 0; i < children.getLength(); i++) {
-        Node child = children.item(i)
-        if (child.getNodeType() == Node.TEXT_NODE && child.getTextContent().trim().isEmpty()) {
-            node.removeChild(child)
-        } else {
-            removeWhitespace(child);
+            url '../moddingx/maven'
         }
     }
 }
