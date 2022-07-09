@@ -17,6 +17,7 @@ trait ModUnit {
   def side(): Side
   def addImageResolveListener(listener: () => Unit): Unit
   def versionLockSuggestion(): Option[Int]
+  def distribution(): Boolean
 
   def isSimple: Boolean
   def isInstalled: Boolean

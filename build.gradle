@@ -26,11 +26,12 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 repositories {
     mavenCentral()
     maven { url 'https://noeppi-noeppi.github.io/MinecraftUtilities/maven' }
+    maven { url 'https://maven.moddingx.org/' }
 }
 
 dependencies {
     implementation 'org.scala-lang:scala-library:2.13.6'
-    implementation 'io.github.noeppi_noeppi.tools:CurseWrapper:1.0'
+    implementation 'org.moddingx:CurseWrapper:2.0'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/

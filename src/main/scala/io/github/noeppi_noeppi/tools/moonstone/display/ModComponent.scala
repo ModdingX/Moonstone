@@ -6,7 +6,7 @@ import io.github.noeppi_noeppi.tools.moonstone.Util
 import io.github.noeppi_noeppi.tools.moonstone.display.part.JImage
 import io.github.noeppi_noeppi.tools.moonstone.model.Side
 
-import java.awt.{Cursor, Dimension}
+import java.awt.{Color, Cursor, Dimension, Font}
 import java.awt.event.ActionEvent
 import javax.swing.SpringLayout.{EAST, NORTH, SOUTH, WEST}
 import javax.swing._
@@ -112,10 +112,18 @@ class ModComponent(unit: ModUnit) extends JPanel {
     Nil
   }
 
+  private val distribution = new JLabel(if (!unit.distribution) "\uD83D\uDEAB" else "")
+  add(distribution)
+  distribution.setFont(distribution.getFont.deriveFont(distribution.getFont.getSize2D * 2))
+  distribution.setForeground(Color.RED)
+  distribution.setToolTipText("Not allowed for 3rd party")
+  spring.putConstraint(WEST, distribution, 10, EAST, logo)
+  spring.putConstraint(NORTH, distribution, 0, NORTH, logo)
+
   private val title = new JLabel(unit.name)
   add(title)
   title.setFont(title.getFont.deriveFont(title.getFont.getSize2D * 1.75f))
-  spring.putConstraint(WEST, title, 10, EAST, logo)
+  spring.putConstraint(WEST, title, if (!unit.distribution) 5 else 0, EAST, distribution)
   spring.putConstraint(NORTH, title, 0, NORTH, logo)
   buttons.headOption.foreach(b => spring.putConstraint(EAST, title, -12, WEST, b))
 
