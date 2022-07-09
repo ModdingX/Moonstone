@@ -61,7 +61,7 @@ task configureFatJar {
     doLast {
         configurations.runtimeClasspath.each { dep ->
             fatjar.from(project.zipTree(dep)) {
-                exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+                exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
                 duplicatesStrategy DuplicatesStrategy.INCLUDE
             }
         }
