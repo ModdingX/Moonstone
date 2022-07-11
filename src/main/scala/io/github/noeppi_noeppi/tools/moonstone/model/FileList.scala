@@ -1,109 +1,103 @@
 package io.github.noeppi_noeppi.tools.moonstone.model
 
-import com.google.gson.{JsonArray, JsonSyntaxException}
-import com.intellij.openapi.application.{ApplicationManager, TransactionGuard}
+import com.google.gson.{JsonElement, JsonSyntaxException}
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import io.github.noeppi_noeppi.tools.moonstone.Util
+import io.github.noeppi_noeppi.tools.moonstone.platform.ModdingPlatform
 
 import java.io.{IOException, InputStreamReader, OutputStreamWriter}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
 
-class FileList(val project: Project, val file: VirtualFile, private val modify: () => Unit) {
-
-  private val installed = mutable.Map[Int, FileEntry]()
-  private val dependencies = mutable.Map[Int, FileEntry]()
+class FileList private (
+                         val project: Project,
+                         val file: VirtualFile,
+                         private val onModified: () => Unit,
+                         private var platform: ModdingPlatform,
+                         private var loader: String,
+                         private var mcVersion: String,
+                         pInstalled: Set[FileEntry],
+                         pDependencies: Set[FileEntry]
+                       ) {
   
-  try {
-    val reader = new InputStreamReader(file.getInputStream)
-    val json = Util.GSON.fromJson(reader, classOf[JsonArray])
-    reader.close()
-    if (json != null) { // null for empty file
-      for (elem <- json.asScala if elem.isJsonObject; entry = elem.getAsJsonObject) {
-        val isInstalled = !entry.has("installed") || entry.get("installed").getAsBoolean
-        FileEntry.fromJson(entry) match {
-          case Some(info) if isInstalled =>
-            installed.addOne(info.projectId -> info)
-            dependencies.remove(info.projectId)
-          case Some(info) if !isInstalled =>
-            dependencies.addOne(info.projectId -> info)
-            installed.remove(info.projectId)
-          case _ =>
-        }
-      }
-    } else {
-      // Write an empty file
-      save()
-    }
-  } catch {
-    case _: IOException | _: JsonSyntaxException => System.err.println("Failed to read json.")
-  }
+  private val installedMap: mutable.Map[JsonElement, FileEntry] = pInstalled.groupBy(_.project).view.mapValues(_.head).to(mutable.Map)
+  private val dependencyMap: mutable.Map[JsonElement, FileEntry] = pDependencies.groupBy(_.project).view.mapValues(_.head).to(mutable.Map)
   
   def save(): Unit = {
-    val json = new JsonArray()
-    for (info <- installed.values.toSeq.sortBy(f => (f.projectId, f.fileId))) {
-      val entry = info.toJson
-      entry.addProperty("installed", true)
-      json.add(entry)
-    }
-    for (info <- dependencies.values.toSeq.sortBy(f => (f.projectId, f.fileId))) {
-      val entry = info.toJson
-      entry.addProperty("installed", false)
-      json.add(entry)
-    }
     Util.writeAction {
       val writer = new OutputStreamWriter(file.getOutputStream(this))
-      writer.write(Util.GSON.toJson(json) + "\n")
+      FileListIO.save(writer, FileListIO.Data(platform, loader, mcVersion, installedMap.values.toSet, dependencyMap.values.toSet))
       writer.close()
     }
   }
   
-  def installedFiles: Set[FileEntry] = installed.values.toSet
-  def dependencyFiles: Set[FileEntry] = dependencies.values.toSet
-  
-  def installedMap: Map[Int, FileEntry] = installed.toMap
-  def dependencyMap: Map[Int, FileEntry] = dependencies.toMap
-  def allFiles: Map[Int, FileEntry] = Map.newBuilder.addAll(dependencies).addAll(installed).result()
+  def installedFiles: Set[FileEntry] = installedMap.values.toSet
+  def dependencyFiles: Set[FileEntry] = dependencyMap.values.toSet
+  def allFiles: Set[FileEntry] = installedMap.values.toSet | dependencyMap.values.toSet
 
-  def hasProject(projectId: Int): Boolean = installed.contains(projectId) || dependencies.contains(projectId)
-  def fileInfo(projectId: Int): Option[FileEntry] = installed.get(projectId).orElse(dependencies.get(projectId))
+  def hasProject(file: FileEntry): Boolean = hasProject(file.project)
+  def hasProject(project: JsonElement): Boolean = installedMap.contains(project) || dependencyMap.contains(project)
+  def fileInfo(project: JsonElement): Option[FileEntry] = installedMap.get(project).orElse(dependencyMap.get(project))
   
-  def remove(projectId: Int): Unit = {
-    val b1 = installed.remove(projectId).isDefined
-    val b2 = dependencies.remove(projectId).isDefined
-    if (b1 || b2) modify()
+  def removeProject(file: FileEntry): Unit = removeProject(file.project)
+  def removeProject(project: JsonElement): Unit = {
+    val b1 = installedMap.remove(project).isDefined
+    val b2 = dependencyMap.remove(project).isDefined
+    if (b1 || b2) onModified()
   }
   
-  def removeDependency(projectId: Int): Unit = {
-    if (dependencies.remove(projectId).isDefined) modify()
+  def removeDependencyProject(file: FileEntry): Unit = removeDependencyProject(file.project)
+  def removeDependencyProject(project: JsonElement): Unit = {
+    if (dependencyMap.remove(project).isDefined) onModified()
   }
   
   def updateOrAddDependency(file: FileEntry): Unit = {
-    if (installed.contains(file.projectId)) {
-      val removedDep = dependencies.remove(file.projectId).isDefined
-      val hasChanges = file != installed(file.projectId)
-      if (hasChanges) installed(file.projectId) = file
-      if (removedDep || hasChanges) modify()
-    } else if (dependencies.contains(file.projectId)) {
-      if (file != dependencies(file.projectId)) {
-        dependencies(file.projectId) = file
-        modify()
+    if (installedMap.contains(file.project)) {
+      val removedDep = dependencyMap.remove(file.project).isDefined
+      val hasChanges = file != installedMap(file.project)
+      if (hasChanges) installedMap(file.project) = file
+      if (removedDep || hasChanges) onModified()
+    } else if (dependencyMap.contains(file.project)) {
+      if (file != dependencyMap(file.project)) {
+        dependencyMap(file.project) = file
+        onModified()
       }
     } else {
-      dependencies.put(file.projectId, file)
-      modify()
+      dependencyMap.put(file.project, file)
+      onModified()
     }
   }
   
   def add(file: FileEntry, isInstalled: Boolean): Unit = {
-    installed.remove(file.projectId)
-    dependencies.remove(file.projectId)
+    installedMap.remove(file.project)
+    dependencyMap.remove(file.project)
     if (isInstalled) {
-      installed(file.projectId) = file
+      installedMap(file.project) = file
     } else {
-      dependencies(file.projectId) = file
+      dependencyMap(file.project) = file
     }
-    modify()
+    onModified()
+  }
+}
+
+object FileList {
+  
+  def create(project: Project, file: VirtualFile, onModified: () => Unit): Option[FileList] = {
+    try {
+      val reader = new InputStreamReader(file.getInputStream)
+      val FileListIO.ReadResult(data, needsUpdate) = FileListIO.load(reader)
+      
+      val list = new FileList(project, file, onModified, data.platform, data.loader, data.mcVersion, data.installed.to(mutable.Set), data.dependencies.to(mutable.Set))
+      if (needsUpdate) {
+        list.save()
+      }
+      
+      Some(list)
+    } catch {
+      case e @ (_: IOException | _: JsonSyntaxException) =>
+        System.err.println("Failed to read json.")
+        e.printStackTrace()
+        None
+    }
   }
 }

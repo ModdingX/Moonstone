@@ -4,7 +4,7 @@ sealed abstract class Side(val id: String, val client: Boolean, val server: Bool
 
 object Side {
   
-  val values = List(COMMON, CLIENT, SERVER)
+  val values: Seq[Side] = Seq(COMMON, CLIENT, SERVER)
   
   case object COMMON extends Side("common", true, true)
   case object CLIENT extends Side("client", true, false)
