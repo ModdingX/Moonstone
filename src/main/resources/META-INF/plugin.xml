@@ -9,14 +9,14 @@
     <depends>com.intellij.gradle</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <fileType name="Moonstone" implementationClass="io.github.noeppi_noeppi.tools.moonstone.file.MoonStoneFileType$" fieldName="MODULE$" patterns="modlist.json" />
-        <fileEditorProvider implementation="io.github.noeppi_noeppi.tools.moonstone.file.MoonStoneEditorProvider" />
+        <fileType name="Moonstone" implementationClass="org.moddingx.moonstone.file.MoonStoneFileType$" fieldName="MODULE$" patterns="modlist.json" />
+        <fileEditorProvider implementation="org.moddingx.moonstone.file.MoonStoneEditorProvider" />
     </extensions>
 
     <actions>
         <!--suppress PluginXmlCapitalization -->
-        <action id="io.github.noeppi_noeppi.tools.moonstone.action.ImportModpackAction"
-                class="io.github.noeppi_noeppi.tools.moonstone.action.ImportModpackAction" text="Import CurseForge modpack"
+        <action id="org.moddingx.moonstone.action.ImportModpackAction"
+                class="org.moddingx.moonstone.action.ImportModpackAction" text="Import CurseForge modpack"
                 description="Opens a file selector to import an existing modpack based on an exported zip.">
             <add-to-group group-id="ToolsMenu" anchor="first"/>
         </action>

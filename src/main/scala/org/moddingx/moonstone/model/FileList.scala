@@ -1,0 +1,103 @@
+package org.moddingx.moonstone.model
+
+import com.google.gson.{JsonElement, JsonSyntaxException}
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import org.moddingx.moonstone.Util
+import org.moddingx.moonstone.platform.ModdingPlatform
+
+import java.io.{IOException, InputStreamReader, OutputStreamWriter}
+import scala.collection.mutable
+
+class FileList private (
+                         val project: Project,
+                         val file: VirtualFile,
+                         private val onModified: () => Unit,
+                         private var platform: ModdingPlatform,
+                         private var loader: String,
+                         private var mcVersion: String,
+                         pInstalled: Set[FileEntry],
+                         pDependencies: Set[FileEntry]
+                       ) {
+  
+  private val installedMap: mutable.Map[JsonElement, FileEntry] = pInstalled.groupBy(_.project).view.mapValues(_.head).to(mutable.Map)
+  private val dependencyMap: mutable.Map[JsonElement, FileEntry] = pDependencies.groupBy(_.project).view.mapValues(_.head).to(mutable.Map)
+  
+  def save(): Unit = {
+    Util.writeAction {
+      val writer = new OutputStreamWriter(file.getOutputStream(this))
+      FileListIO.save(writer, FileListIO.Data(platform, loader, mcVersion, installedMap.values.toSet, dependencyMap.values.toSet))
+      writer.close()
+    }
+  }
+  
+  def installedFiles: Set[FileEntry] = installedMap.values.toSet
+  def dependencyFiles: Set[FileEntry] = dependencyMap.values.toSet
+  def allFiles: Set[FileEntry] = installedMap.values.toSet | dependencyMap.values.toSet
+
+  def hasProject(file: FileEntry): Boolean = hasProject(file.project)
+  def hasProject(project: JsonElement): Boolean = installedMap.contains(project) || dependencyMap.contains(project)
+  def fileInfo(project: JsonElement): Option[FileEntry] = installedMap.get(project).orElse(dependencyMap.get(project))
+  
+  def removeProject(file: FileEntry): Unit = removeProject(file.project)
+  def removeProject(project: JsonElement): Unit = {
+    val b1 = installedMap.remove(project).isDefined
+    val b2 = dependencyMap.remove(project).isDefined
+    if (b1 || b2) onModified()
+  }
+  
+  def removeDependencyProject(file: FileEntry): Unit = removeDependencyProject(file.project)
+  def removeDependencyProject(project: JsonElement): Unit = {
+    if (dependencyMap.remove(project).isDefined) onModified()
+  }
+  
+  def updateOrAddDependency(file: FileEntry): Unit = {
+    if (installedMap.contains(file.project)) {
+      val removedDep = dependencyMap.remove(file.project).isDefined
+      val hasChanges = file != installedMap(file.project)
+      if (hasChanges) installedMap(file.project) = file
+      if (removedDep || hasChanges) onModified()
+    } else if (dependencyMap.contains(file.project)) {
+      if (file != dependencyMap(file.project)) {
+        dependencyMap(file.project) = file
+        onModified()
+      }
+    } else {
+      dependencyMap.put(file.project, file)
+      onModified()
+    }
+  }
+  
+  def add(file: FileEntry, isInstalled: Boolean): Unit = {
+    installedMap.remove(file.project)
+    dependencyMap.remove(file.project)
+    if (isInstalled) {
+      installedMap(file.project) = file
+    } else {
+      dependencyMap(file.project) = file
+    }
+    onModified()
+  }
+}
+
+object FileList {
+  
+  def create(project: Project, file: VirtualFile, onModified: () => Unit): Option[FileList] = {
+    try {
+      val reader = new InputStreamReader(file.getInputStream)
+      val FileListIO.ReadResult(data, needsUpdate) = FileListIO.load(reader)
+      
+      val list = new FileList(project, file, onModified, data.platform, data.loader, data.mcVersion, data.installed.to(mutable.Set), data.dependencies.to(mutable.Set))
+      if (needsUpdate) {
+        list.save()
+      }
+      
+      Some(list)
+    } catch {
+      case e @ (_: IOException | _: JsonSyntaxException) =>
+        System.err.println("Failed to read json.")
+        e.printStackTrace()
+        None
+    }
+  }
+}
