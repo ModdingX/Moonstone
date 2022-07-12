@@ -1,13 +1,21 @@
 package org.moddingx.moonstone.platform
 
+import com.intellij.openapi.Disposable
 import org.moddingx.moonstone.model.FileEntry
+
 import java.util.Locale
 
 trait ModdingPlatform {
   
   val name: String
   
+  def createAccess: PlatformAccess
+  
   def validateEntry(entry: FileEntry): Option[FileEntry] = Some(entry)
+}
+
+trait PlatformAccess extends Disposable {
+  
 }
 
 object ModdingPlatform {

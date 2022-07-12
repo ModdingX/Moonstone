@@ -7,15 +7,16 @@ import org.moddingx.moonstone.Util
 import org.moddingx.moonstone.platform.ModdingPlatform
 
 import java.io.{IOException, InputStreamReader, OutputStreamWriter}
+import java.util.Locale
 import scala.collection.mutable
 
 class FileList private (
                          val project: Project,
                          val file: VirtualFile,
                          private val onModified: () => Unit,
-                         private var platform: ModdingPlatform,
-                         private var loader: String,
-                         private var mcVersion: String,
+                         val platform: ModdingPlatform,
+                         private[this] var pLoader: String,
+                         private[this] var pMcVersion: String,
                          pInstalled: Set[FileEntry],
                          pDependencies: Set[FileEntry]
                        ) {
@@ -77,6 +78,30 @@ class FileList private (
       dependencyMap(file.project) = file
     }
     onModified()
+  }
+
+  def loader: String = pLoader
+  def loader_=(loader: String): Unit = {
+    val didChange = pLoader != loader.toLowerCase(Locale.ROOT)
+    if (didChange) {
+      pLoader = loader.toLowerCase(Locale.ROOT)
+      onModified()
+    }
+  }
+  
+  def mcVersion: String = pMcVersion
+  def mcVersion_=(mcVersion: String): Unit = {
+    val didChange = pMcVersion != mcVersion.toLowerCase(Locale.ROOT)
+    if (didChange) {
+      pMcVersion = mcVersion.toLowerCase(Locale.ROOT)
+      onModified()
+    }
+  }
+  
+  def deriveEmpty(newPlatform: ModdingPlatform): FileList = {
+    val derived = new FileList(project, file, onModified, newPlatform, loader, mcVersion, Set(), Set())
+    derived.onModified()
+    derived
   }
 }
 
