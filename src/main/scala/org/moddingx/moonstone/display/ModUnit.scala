@@ -16,8 +16,9 @@ trait ModUnit {
   def url(): Option[URI]
   def side(): Side
   def addImageResolveListener(listener: () => Unit): Unit
-  def versionLockSuggestion(): Option[Int]
-  def distribution(): Boolean
+  
+  def versionLockSuggestion: Option[String]
+  def allowsThirdPartyDownloads: Boolean
 
   def isSimple: Boolean
   def isInstalled: Boolean
@@ -28,7 +29,7 @@ trait ModUnit {
   def install(): Unit
   def uninstall(): Unit
   def update(): Unit
-  def lock(fileId: Int): Unit
+  def lock(input: String): Unit
   def unlock(): Unit
   def setSide(side: Side): Unit
 

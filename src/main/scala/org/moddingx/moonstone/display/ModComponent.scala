@@ -6,8 +6,8 @@ import org.moddingx.moonstone.Util
 import org.moddingx.moonstone.display.part.JImage
 import org.moddingx.moonstone.model.Side
 
-import java.awt.{Color, Cursor, Dimension, Font}
 import java.awt.event.ActionEvent
+import java.awt.{Color, Cursor, Dimension}
 import javax.swing.SpringLayout.{EAST, NORTH, SOUTH, WEST}
 import javax.swing._
 import scala.collection.mutable.ListBuffer
@@ -58,14 +58,14 @@ class ModComponent(unit: ModUnit) extends JPanel {
       DefaultButton("Unlock Version", enabled = true, () => unit.unlock())
     } else {
       DefaultButton("Lock Version", enabled = true, () => {
-        val suggestion = unit.versionLockSuggestion().map(_.toString).getOrElse("")
+        val suggestion = unit.versionLockSuggestion.getOrElse("")
         val validator = new InputValidator {
           override def checkInput(inputString: String): Boolean = inputString.toIntOption.isDefined
           override def canClose(inputString: String): Boolean = inputString.toIntOption.isDefined
         }
         val name = Messages.showInputDialog(unit.project, "Enter version id:", "Lock Version", Messages.getQuestionIcon, suggestion, validator)
-        Option(name).flatMap(_.toIntOption) match {
-          case Some(fileId) => unit.lock(fileId)
+        Option(name) match {
+          case Some(input) => unit.lock(input)
           case None =>
         }
       })
@@ -112,7 +112,7 @@ class ModComponent(unit: ModUnit) extends JPanel {
     Nil
   }
 
-  private val distribution = new JLabel(if (!unit.distribution) "\uD83D\uDEAB" else "")
+  private val distribution = new JLabel(if (unit.allowsThirdPartyDownloads) "" else "\uD83D\uDEAB")
   add(distribution)
   distribution.setFont(distribution.getFont.deriveFont(distribution.getFont.getSize2D * 2))
   distribution.setForeground(Color.RED)
@@ -123,7 +123,7 @@ class ModComponent(unit: ModUnit) extends JPanel {
   private val title = new JLabel(unit.name)
   add(title)
   title.setFont(title.getFont.deriveFont(title.getFont.getSize2D * 1.75f))
-  spring.putConstraint(WEST, title, if (!unit.distribution) 5 else 0, EAST, distribution)
+  spring.putConstraint(WEST, title, if (unit.allowsThirdPartyDownloads) 0 else 5, EAST, distribution)
   spring.putConstraint(NORTH, title, 0, NORTH, logo)
   buttons.headOption.foreach(b => spring.putConstraint(EAST, title, -12, WEST, b))
 
@@ -187,12 +187,12 @@ class ModComponent(unit: ModUnit) extends JPanel {
     }
   }
 
-  case class SelectButton[T](value: T, list: List[T], text: T => String, action: T => Unit) extends ButtonFactory {
+  case class SelectButton[T](value: T, options: Seq[T], text: T => String, action: T => Unit) extends ButtonFactory {
     override def createButton(): JComponent = {
-      val textList = list.map(text)
+      val textList = options.map(text)
       val button = new ComboBox[String](textList.toArray)
-      button.setSelectedIndex(list.indexOf(value))
-      button.addActionListener((_: ActionEvent) => if (list.indices.contains(button.getSelectedIndex)) action(list(button.getSelectedIndex)))
+      button.setSelectedIndex(options.indexOf(value))
+      button.addActionListener((_: ActionEvent) => if (options.indices.contains(button.getSelectedIndex)) action(options(button.getSelectedIndex)))
       button
     }
   }
