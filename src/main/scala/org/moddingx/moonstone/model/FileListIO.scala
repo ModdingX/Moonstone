@@ -4,7 +4,9 @@ import com.google.gson.{JsonArray, JsonElement, JsonObject, JsonSyntaxException}
 import org.moddingx.moonstone.Util
 import org.moddingx.moonstone.platform.ModdingPlatform
 
-import java.io.{Reader, Writer}
+import java.io.{InputStreamReader, Reader, Writer}
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 import javax.annotation.WillClose
 import scala.collection.mutable
@@ -13,6 +15,15 @@ import scala.jdk.CollectionConverters._
 object FileListIO {
   
   val API: Int = 2
+  
+  private val latestMC = try {
+    val in: Reader = new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), StandardCharsets.UTF_8)
+    val json = Util.GSON.fromJson(in, classOf[JsonObject])
+    in.close()
+    json.get("latest").getAsJsonObject.get("release").getAsString
+  } catch {
+    case _: Exception => "1.16.5"
+  }
   
   def load(@WillClose reader: Reader): ReadResult = {
     try {
@@ -62,7 +73,7 @@ object FileListIO {
   def loadAPI2(json: JsonObject): Data = {
     val platform = ModdingPlatform.get(if (json.has("platform")) json.get("platform").getAsString else "")
     val loader = if (json.has("loader")) json.get("loader").getAsString else "forge"
-    val mcVersion = if (json.has("minecraft")) json.get("minecraft").getAsString else "1.16.5"
+    val mcVersion = if (json.has("minecraft")) json.get("minecraft").getAsString else latestMC
     
     val installed = mutable.Set[FileEntry]()
     val dependencies = mutable.Set[FileEntry]()
@@ -104,7 +115,7 @@ object FileListIO {
       }
     }
     
-    Data(ModdingPlatform.CURSE, "forge", "1.16.5", installed.toSet, dependencies.toSet)
+    Data(ModdingPlatform.CURSE, "forge", latestMC, installed.toSet, dependencies.toSet)
   }
   
   case class ReadResult(data: Data, needsUpdate: Boolean)
@@ -136,6 +147,6 @@ object FileListIO {
   
   object Data {
     
-    val FALLBACK: Data = Data(ModdingPlatform.CURSE, "forge", "1.16.5", Set(), Set())
+    lazy val FALLBACK: Data = Data(ModdingPlatform.CURSE, "forge", latestMC, Set(), Set())
   }
 }

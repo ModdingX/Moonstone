@@ -1,9 +1,9 @@
 package org.moddingx.moonstone.display
 
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.ui.{ComboBox, InputValidator, Messages}
+import com.intellij.openapi.ui.{InputValidator, Messages}
 import org.moddingx.moonstone.Util
-import org.moddingx.moonstone.display.part.JImage
+import org.moddingx.moonstone.display.part.{ButtonHelper, JImage}
 import org.moddingx.moonstone.model.Side
 
 import java.awt.event.ActionEvent
@@ -38,26 +38,26 @@ class ModComponent(unit: ModUnit) extends JPanel {
   spring.putConstraint(NORTH, logo, 3, NORTH, this)
   spring.putConstraint(SOUTH, logo, -3, SOUTH, this)
 
-  private val buttonList: List[ButtonFactory] = if (unit.isSimple) {
+  private val buttonList: Seq[ButtonHelper.ButtonFactory] = if (unit.isSimple) {
     if (!unit.isInstalled) {
-      List(DefaultButton("Install", enabled = true, () => unit.install()))
+      List(ButtonHelper.DefaultButton("Install", enabled = true, _ => unit.install()))
     } else {
       Nil
     }
   } else {
     val updateButton = if (unit.canUpdate) {
       if (unit.isVersionLocked) {
-        DefaultButton("Update Locked", enabled = false, () => ())
+        ButtonHelper.DefaultButton("Update Locked", enabled = false, _ => ())
       } else {
-        DefaultButton("Update", enabled = true, () => unit.update())
+        ButtonHelper.DefaultButton("Update", enabled = true, _ => unit.update())
       }
     } else {
-      DefaultButton("Up To Date", enabled = false, () => ())
+      ButtonHelper.DefaultButton("Up To Date", enabled = false, _ => ())
     }
     val lockButton = if (unit.isVersionLocked) {
-      DefaultButton("Unlock Version", enabled = true, () => unit.unlock())
+      ButtonHelper.DefaultButton("Unlock Version", enabled = true, _ => unit.unlock())
     } else {
-      DefaultButton("Lock Version", enabled = true, () => {
+      ButtonHelper.DefaultButton("Lock Version", enabled = true, _ => {
         val suggestion = unit.versionLockSuggestion.getOrElse("")
         val validator = new InputValidator {
           override def checkInput(inputString: String): Boolean = inputString.toIntOption.isDefined
@@ -71,16 +71,19 @@ class ModComponent(unit: ModUnit) extends JPanel {
       })
     }
     val installButton = if (unit.isInstalled) {
-      DefaultButton("Uninstall", enabled = true, () => unit.uninstall())
+      ButtonHelper.DefaultButton("Uninstall", enabled = true, _ => unit.uninstall())
     } else {
-      DefaultButton("Install", enabled = true, () => unit.install())
+      ButtonHelper.DefaultButton("Install", enabled = true, _ => unit.install())
     }
     val sideButton = if (unit.canSetSide) {
-      Some(SelectButton[Side](unit.side, Side.values, _.id, s => unit.setSide(s)))
+      Some(ButtonHelper.SelectButton[Side](unit.side, Side.values, _.id, (s, _) => {
+        unit.setSide(s)
+        s
+      }))
     } else {
       None
     }
-    List(updateButton, lockButton, installButton).appendedAll(sideButton)
+    Seq(updateButton, lockButton, installButton).appendedAll(sideButton)
   }
 
   private val buttons = if (buttonList.nonEmpty) {
@@ -172,28 +175,5 @@ class ModComponent(unit: ModUnit) extends JPanel {
 
     lastCalculatedSize = Some((initSize, totalWidth, totalHeight))
     new Dimension(totalWidth, totalHeight)
-  }
-
-  sealed trait ButtonFactory {
-    def createButton(): JComponent
-  }
-
-  case class DefaultButton(text: String, enabled: Boolean, action: () => Unit) extends ButtonFactory {
-    override def createButton(): JComponent = {
-      val button = new JButton(text)
-      button.setEnabled(enabled)
-      button.addActionListener((_: ActionEvent) => action())
-      button
-    }
-  }
-
-  case class SelectButton[T](value: T, options: Seq[T], text: T => String, action: T => Unit) extends ButtonFactory {
-    override def createButton(): JComponent = {
-      val textList = options.map(text)
-      val button = new ComboBox[String](textList.toArray)
-      button.setSelectedIndex(options.indexOf(value))
-      button.addActionListener((_: ActionEvent) => if (options.indices.contains(button.getSelectedIndex)) action(options(button.getSelectedIndex)))
-      button
-    }
   }
 }

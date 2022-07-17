@@ -31,13 +31,17 @@ class ModList private (
   }
 
   def loader: String = files.loader
-  def loader_=(loader: String): Unit = files.loader = loader
+  def loader_=(loader: String): Unit = updateFileList {
+    files.loader = loader
+  }
 
   def mcVersion: String = files.mcVersion
-  def mcVersion_=(mcVersion: String): Unit = files.mcVersion = mcVersion
+  def mcVersion_=(mcVersion: String): Unit = updateFileList {
+    files.mcVersion = mcVersion
+  }
   
   def platform: ModdingPlatform = files.platform
-  def platform_=(newPlatform: ModdingPlatform): Unit = {
+  def platform_=(newPlatform: ModdingPlatform): Unit = updateFileList {
     if (files.platform != newPlatform) {
       if (pAccess != null) {
         pAccess.dispose()

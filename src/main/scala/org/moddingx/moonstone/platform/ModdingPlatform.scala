@@ -32,8 +32,10 @@ trait PlatformAccess extends Disposable {
 
 object ModdingPlatform {
   
-  val CURSE: ModdingPlatform = ??? // TODO
+  val CURSE: ModdingPlatform = ??? // TODO (replace liteloader with lite_loader when parsing modloader)
   val MODRINTH: ModdingPlatform = ??? // TODO
+  
+  val platforms: Seq[ModdingPlatform] = Seq(CURSE, MODRINTH)
   
   def get(str: String): ModdingPlatform = str.toLowerCase(Locale.ROOT) match {
     case MODRINTH.name => MODRINTH
