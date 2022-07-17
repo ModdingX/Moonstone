@@ -4,6 +4,7 @@ import com.google.gson.JsonElement
 import com.intellij.openapi.Disposable
 import org.moddingx.moonstone.model.{FileEntry, Side}
 import org.moddingx.moonstone.platform.curse.CursePlatform
+import org.moddingx.moonstone.platform.modrinth.ModrinthPlatform
 
 import java.net.URI
 import java.util.Locale
@@ -23,19 +24,25 @@ trait PlatformAccess extends Disposable {
   def projectLogo(project: JsonElement): Option[URI]
   def projectSite(project: JsonElement): Option[URI]
   def thirdPartyDownloads(project: JsonElement): Boolean
+  def defaultProjectSide(project: JsonElement): Side
   def versionName(file: FileEntry): String
-  
+  def versionByInput(file: FileEntry, input: String): Option[FileEntry]
+
+  // platform can load these into cache at once to make load time faster
+  def modPackHint(files: Set[FileEntry]): Unit
   def latestFile(project: JsonElement): Option[FileEntry]
   def allFiles(project: JsonElement): Seq[FileEntry]
   def latestFrom(files: Set[FileEntry]): Option[FileEntry]
   def searchMods(query: String): Seq[JsonElement]
   def dependencies(file: FileEntry): Seq[ResolvableDependency]
+  
+  def metadataChange(): Unit
 }
 
 object ModdingPlatform {
   
   val CURSE: ModdingPlatform = CursePlatform
-  val MODRINTH: ModdingPlatform = ??? // TODO
+  val MODRINTH: ModdingPlatform = ModrinthPlatform
   
   val platforms: Seq[ModdingPlatform] = Seq(CURSE, MODRINTH)
   

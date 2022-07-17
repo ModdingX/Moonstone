@@ -17,6 +17,13 @@ object Side {
     case id => System.err.print("Side not found: " + id); COMMON
   }
   
+  def get(client: Boolean, server: Boolean): Side = {
+    if (client && server) COMMON
+    else if (client) CLIENT
+    else if (server) SERVER
+    else COMMON
+  }
+  
   def merge(sides: Side*): Side = {
     if (sides.isEmpty) {
       COMMON

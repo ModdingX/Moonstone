@@ -26,6 +26,7 @@ class ModList private (
   def access: PlatformAccess = {
     if (pAccess == null) {
       pAccess = new WrappedAccess(platform.createAccess(this))
+      pAccess.modPackHint(files.allFiles)
     }
     pAccess
   }
@@ -33,11 +34,13 @@ class ModList private (
   def loader: String = files.loader
   def loader_=(loader: String): Unit = updateFileList {
     files.loader = loader
+    if (pAccess != null) pAccess.metadataChange()
   }
 
   def mcVersion: String = files.mcVersion
   def mcVersion_=(mcVersion: String): Unit = updateFileList {
     files.mcVersion = mcVersion
+    if (pAccess != null) pAccess.metadataChange()
   }
   
   def platform: ModdingPlatform = files.platform
@@ -192,7 +195,7 @@ class ModList private (
 
     override def install(): Unit = latestFile match {
       case Some(latest) => updateFileList {
-        files.add(latest, isInstalled = true)
+        files.add(latest.withSide(access.defaultProjectSide(projectId)), isInstalled = true)
       }
       case None =>
     }

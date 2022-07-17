@@ -1,6 +1,6 @@
 package org.moddingx.moonstone
 
-import com.google.gson.{Gson, GsonBuilder}
+import com.google.gson.{Gson, GsonBuilder, JsonElement, JsonObject}
 import com.intellij.openapi.application.{ApplicationManager, ModalityState}
 
 import java.awt.EventQueue
@@ -62,5 +62,18 @@ object Util {
       })
     }, ModalityState.NON_MODAL)
     ret.get()
+  }
+  
+  def option(json: JsonObject, key: String): Option[JsonElement] = {
+    if (json.has(key)) {
+      val elem = json.get(key)
+      if (elem.isJsonNull) {
+        None
+      } else {
+        Some(elem)
+      }
+    } else {
+      None
+    }
   }
 }

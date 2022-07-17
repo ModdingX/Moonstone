@@ -3,7 +3,7 @@ package org.moddingx.moonstone.platform.curse
 import com.google.gson.{JsonElement, JsonPrimitive}
 import org.moddingx.cursewrapper.api.CurseWrapper
 import org.moddingx.cursewrapper.api.request.FileFilter
-import org.moddingx.cursewrapper.api.response.{FileInfo, ModLoader, ProjectInfo}
+import org.moddingx.cursewrapper.api.response.{FileInfo, ModLoader, ProjectInfo, RelationType}
 import org.moddingx.moonstone.model.{FileEntry, Side}
 import org.moddingx.moonstone.platform.{ModList, PlatformAccess, ProjectDependency, ResolvableDependency}
 
@@ -18,6 +18,7 @@ class CurseAccess(val list: ModList) extends PlatformAccess {
   private val files = mutable.Map[(Int, Int), FileInfo]()
   private val latestFiles = mutable.Map[Int, FileInfo]()
   private val allFiles = mutable.Map[Int, Seq[FileInfo]]()
+  private val searchResults = mutable.Map[String, Seq[Int]]()
   
   private def getProject(id: JsonElement): ProjectInfo = {
     projects.getOrElseUpdate(id.getAsInt, api.getProject(id.getAsInt))
@@ -47,9 +48,13 @@ class CurseAccess(val list: ModList) extends PlatformAccess {
   override def projectDescription(project: JsonElement): String = getProject(project).summary()
   override def projectLogo(project: JsonElement): Option[URI] = Some(getProject(project).thumbnail())
   override def projectSite(project: JsonElement): Option[URI] = Some(getProject(project).website())
+  override def defaultProjectSide(project: JsonElement): Side = Side.COMMON
   override def thirdPartyDownloads(project: JsonElement): Boolean = getProject(project).distribution()
   override def versionName(file: FileEntry): String = getFile(file).name()
-  
+  override def versionByInput(file: FileEntry, input: String): Option[FileEntry] = input.toIntOption.map(id => file.withFile(new JsonPrimitive(id)))
+
+  override def modPackHint(files: Set[FileEntry]): Unit = ()
+
   override def latestFile(project: JsonElement): Option[FileEntry] = {
     val result = Option(latestFiles.getOrElseUpdate(project.getAsInt, api.getLatestFile(project.getAsInt, filter)))
     for (res <- result) files.put((res.projectId(), res.fileId()), res)
@@ -64,17 +69,27 @@ class CurseAccess(val list: ModList) extends PlatformAccess {
   
   override def latestFrom(files: Set[FileEntry]): Option[FileEntry] = files.maxByOption(_.file.getAsInt)
   
-  override def searchMods(query: String): Seq[JsonElement] = {
+  override def searchMods(query: String): Seq[JsonElement] = searchResults.getOrElseUpdate(query, {
     val results = api.searchMods(query, filter).asScala.toSeq
     for (res <- results) projects.put(res.projectId(), res)
-    results.map(info => new JsonPrimitive(info.projectId()))
-  }
+    results.map(info => info.projectId())
+  }).map(id => new JsonPrimitive(id))
   
   override def dependencies(file: FileEntry): Seq[ResolvableDependency] = getFile(file).dependencies().asScala.toSeq
+    .filter(dep => dep.`type`() == RelationType.REQUIRED)
     .map(dep => ProjectDependency(new JsonPrimitive(dep.projectId()), list))
+  
+  override def metadataChange(): Unit = {
+    latestFiles.clear()
+    allFiles.clear()
+    searchResults.clear()
+  }
 
   override def dispose(): Unit = {
     projects.clear()
     files.clear()
+    latestFiles.clear()
+    allFiles.clear()
+    searchResults.clear()
   }
 }
