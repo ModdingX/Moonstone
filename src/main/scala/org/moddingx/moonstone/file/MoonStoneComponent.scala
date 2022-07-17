@@ -64,7 +64,6 @@ class MoonStoneComponent private (val project: Project, private val initialFileL
   add(selectionComponent)
   
   private val tabbedView: JTabbedPane = new JBTabbedPane()
-  tabbedView.addChangeListener((_: ChangeEvent) => changeState {})
   
   tabbedView.addTab("Installed", scrollable(installedMods))
   tabbedView.addTab("Dependencies", scrollable(dependencyMods))
@@ -78,7 +77,7 @@ class MoonStoneComponent private (val project: Project, private val initialFileL
           e.consume()
           changeState {
             state.resetSearch()
-            Util.waitForDispatch {
+            Util.dispatch {
               searchMods.startLoad()
               repaint()
             }
@@ -90,7 +89,8 @@ class MoonStoneComponent private (val project: Project, private val initialFileL
     searchPane.add(scrollable(searchMods))
     tabbedView.addTab("Search", searchPane)
   }
-  
+
+  tabbedView.addChangeListener((_: ChangeEvent) => changeState {})
   add(tabbedView)
   
   rebuild {}

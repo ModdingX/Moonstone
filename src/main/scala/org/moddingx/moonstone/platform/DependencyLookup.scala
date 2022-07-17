@@ -8,28 +8,25 @@ import scala.collection.mutable
 object DependencyLookup {
   
   def lookupDependencies(list: ModList, installed: Set[FileEntry], dependencies: Set[FileEntry]): Set[FileEntry] = {
-    val explicitInstalledIds: Set[JsonElement] = installed.map(_.project)
-    val allInstalledIds: Set[JsonElement] = explicitInstalledIds | dependencies.map(_.project)
+    val installedIds: Set[JsonElement] = installed.map(_.project)
     
     val dependencyMap = mutable.Map[JsonElement, mutable.Builder[ResolvableDependency, Seq[ResolvableDependency]]]()
-    val dependencyState = mutable.Map.from[JsonElement, Side](dependencies.map(entry => (entry.project, entry.side)))
+    val dependencyState = mutable.Map[JsonElement, Side]()
     
-    for (dep <- dependencies) {
-      // Add already existing dependencies to dependencyMap
-      // Further calls to addDependency with these will only affect their side
-      // Side is recomputed anyway, so use COMMON here
-      dependencyMap.put(dep.project, Seq.newBuilder.addOne(FileDependency(dep)))
-    }
+    val oldDependencyMap: Map[JsonElement, FileEntry] = dependencies.map(entry => (entry.project, entry)).toMap
     
     def addDependency(dep: ResolvableDependency, side: Side): Unit = {
-      if (!explicitInstalledIds.contains(dep.project)) {
+      if (!installedIds.contains(dep.project)) {
         dependencyState.get(dep.project) match {
           case Some(other) => dependencyState.put(dep.project, Side.merge(other, side))
           case None => dependencyState.put(dep.project, side)
         }
-      }
-      if (!allInstalledIds.contains(dep.project)) {
-        dependencyMap.getOrElseUpdate(dep.project, Seq.newBuilder).addOne(dep)
+        
+        oldDependencyMap.get(dep.project) match {
+          // Project was a dependency before, take already known version
+          case Some(oldDep) => dependencyMap.put(dep.project, Seq.newBuilder.addOne(FileDependency(oldDep)))
+          case None => dependencyMap.getOrElseUpdate(dep.project, Seq.newBuilder).addOne(dep)
+        }
       }
     }
     

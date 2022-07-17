@@ -22,6 +22,7 @@ class ModList private (
 
   private val imageResolver = new ImageResolver()
   
+  @volatile
   private[this] var pAccess: PlatformAccess = _
   def access: PlatformAccess = {
     if (pAccess == null) {
@@ -32,25 +33,28 @@ class ModList private (
   }
 
   def loader: String = files.loader
-  def loader_=(loader: String): Unit = updateFileList {
+  def loader_=(loader: String): Unit = {
     files.loader = loader
     if (pAccess != null) pAccess.metadataChange()
+    updateFileList {}
   }
 
   def mcVersion: String = files.mcVersion
-  def mcVersion_=(mcVersion: String): Unit = updateFileList {
+  def mcVersion_=(mcVersion: String): Unit = {
     files.mcVersion = mcVersion
     if (pAccess != null) pAccess.metadataChange()
+    updateFileList {}
   }
   
   def platform: ModdingPlatform = files.platform
-  def platform_=(newPlatform: ModdingPlatform): Unit = updateFileList {
+  def platform_=(newPlatform: ModdingPlatform): Unit = {
     if (files.platform != newPlatform) {
       if (pAccess != null) {
         pAccess.dispose()
         pAccess = null
       }
       files = files.deriveEmpty(newPlatform)
+      updateFileList {}
     }
   }
   
@@ -82,19 +86,19 @@ class ModList private (
     }
   }
 
-  abstract class ProjectUnit(projectId: JsonElement) extends ModUnit {
+  abstract class ProjectUnit(projectId: JsonElement, val localAccess: PlatformAccess) extends ModUnit {
     
     protected lazy val latestFile: Option[FileEntry] = {
-      access.latestFile(projectId) match {
+      localAccess.latestFile(projectId) match {
         case Some(file) if projectId == file.project => Some(file.withSide(Side.COMMON).withLock(false))
         case _ => None
       }
     }
     
     override val project: Project = ModList.this.project
-    override lazy val name: String = access.projectName(projectId)
-    override lazy val description: String = access.projectDescription(projectId)
-    private lazy val imageURL: Option[URL] = access.projectLogo(projectId).flatMap(uri => {
+    override lazy val name: String = localAccess.projectName(projectId)
+    override lazy val description: String = localAccess.projectDescription(projectId)
+    private lazy val imageURL: Option[URL] = localAccess.projectLogo(projectId).flatMap(uri => {
       try {
         Some(uri.toURL)
       } catch {
@@ -102,10 +106,10 @@ class ModList private (
       }
     })
     override def image: Option[BufferedImage] = imageURL.flatMap(url => imageResolver.getImage(url)) // No lazy val, value changes when image loads
-    override lazy val url: Option[URI] = access.projectSite(projectId)
+    override lazy val url: Option[URI] = localAccess.projectSite(projectId)
     
     override def addImageResolveListener(listener: () => Unit): Unit = imageURL.foreach(url => imageResolver.addListener(url, listener))
-    override def allowsThirdPartyDownloads: Boolean = access.thirdPartyDownloads(projectId)
+    override def allowsThirdPartyDownloads: Boolean = localAccess.thirdPartyDownloads(projectId)
     
     override def resolve(): Unit = {
       name
@@ -120,9 +124,9 @@ class ModList private (
     }
   }
   
-  class BaseUnit(file: FileEntry, installed: Boolean) extends ProjectUnit(file.project) {
+  class BaseUnit(file: FileEntry, installed: Boolean) extends ProjectUnit(file.project, access) {
     
-    override lazy val version: Option[String] = Some(access.versionName(file))
+    override lazy val version: Option[String] = Some(localAccess.versionName(file))
     override def side: Side = file.side
     override def versionLockSuggestion: Option[String] = Some(file.file.toString)
     
@@ -181,7 +185,7 @@ class ModList private (
     }
   }
   
-  class SearchUnit(projectId: JsonElement) extends ProjectUnit(projectId) {
+  class SearchUnit(projectId: JsonElement) extends ProjectUnit(projectId, access) {
     
     override def version: Option[String] = None
     override def side: Side = Side.COMMON
@@ -195,7 +199,7 @@ class ModList private (
 
     override def install(): Unit = latestFile match {
       case Some(latest) => updateFileList {
-        files.add(latest.withSide(access.defaultProjectSide(projectId)), isInstalled = true)
+        files.add(latest.withSide(localAccess.defaultProjectSide(projectId)), isInstalled = true)
       }
       case None =>
     }

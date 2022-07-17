@@ -34,6 +34,8 @@ class WrappedAccess(access: PlatformAccess) extends PlatformAccess {
   private def wrap[T](dfl: T)(action: => T): T = try {
     action
   } catch {
-    case _: Exception => dfl
+    case e: Exception =>
+      e.printStackTrace()
+      dfl
   }
 }

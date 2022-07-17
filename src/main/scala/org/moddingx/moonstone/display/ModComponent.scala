@@ -117,9 +117,9 @@ class ModComponent(unit: ModUnit) extends JPanel {
 
   private val distribution = new JLabel(if (unit.allowsThirdPartyDownloads) "" else "\uD83D\uDEAB")
   add(distribution)
-  distribution.setFont(distribution.getFont.deriveFont(distribution.getFont.getSize2D * 2))
+  distribution.setFont(distribution.getFont.deriveFont(distribution.getFont.getSize2D * 1.5f))
   distribution.setForeground(Color.RED)
-  distribution.setToolTipText("Not allowed for 3rd party")
+  distribution.setToolTipText("3rd party access disabled.")
   spring.putConstraint(WEST, distribution, 10, EAST, logo)
   spring.putConstraint(NORTH, distribution, 0, NORTH, logo)
 

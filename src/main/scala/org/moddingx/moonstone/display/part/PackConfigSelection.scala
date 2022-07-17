@@ -35,6 +35,7 @@ class PackConfigSelection(list: ModList) extends JPanel {
   add(new JLabel("Minecraft Version:"))
   private val minecraft = new JTextField()
   minecraft.setText(list.mcVersion)
+  minecraft.setPreferredSize(new Dimension(100, minecraft.getPreferredSize.height))
   minecraft.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit = {
       if (e.getKeyCode == KeyEvent.VK_ENTER || e.getKeyChar == '\n') {
