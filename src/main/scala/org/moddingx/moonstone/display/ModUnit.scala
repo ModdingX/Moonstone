@@ -12,9 +12,9 @@ trait ModUnit {
   def name: String
   def version: Option[String]
   def description: String
-  def image(): Option[BufferedImage]
-  def url(): Option[URI]
-  def side(): Side
+  def image: Option[BufferedImage]
+  def url: Option[URI]
+  def side: Side
   def addImageResolveListener(listener: () => Unit): Unit
   
   def versionLockSuggestion: Option[String]

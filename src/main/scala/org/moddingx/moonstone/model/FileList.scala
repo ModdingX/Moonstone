@@ -80,6 +80,14 @@ class FileList private (
     onModified()
   }
 
+  def setDependencies(files: Set[FileEntry]): Unit = {
+    dependencyMap.clear()
+    for (file <- files) {
+      dependencyMap(file.project) = file
+    }
+    onModified()
+  }
+
   def loader: String = pLoader
   def loader_=(loader: String): Unit = {
     val didChange = pLoader != loader.toLowerCase(Locale.ROOT)

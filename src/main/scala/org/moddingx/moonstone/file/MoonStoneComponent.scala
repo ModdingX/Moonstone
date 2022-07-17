@@ -14,6 +14,7 @@ import java.util.concurrent.{ExecutorService, ScheduledThreadPoolExecutor}
 import javax.swing._
 import javax.swing.event.ChangeEvent
 
+// TODO updateall button to update all non-locked deps
 class MoonStoneComponent(val project: Project, val file: VirtualFile, private val modify: () => Unit) extends JPanel with Disposable {
   
   private val rebuildExecutor: ExecutorService = new ScheduledThreadPoolExecutor(1)

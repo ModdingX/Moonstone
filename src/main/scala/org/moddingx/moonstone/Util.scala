@@ -8,6 +8,7 @@ import org.moddingx.moonstone.util.PendingFuture
 
 import java.awt.EventQueue
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{Future, FutureTask, TimeUnit}
 import javax.swing.SwingUtilities
 import scala.concurrent.{CancellationException, ExecutionException, TimeoutException}
@@ -66,23 +67,27 @@ object Util {
     }
   }
   
-  def waitForDispatch(action: => Unit): Unit = {
+  def waitForDispatch[T](action: => T): T = {
     if (EventQueue.isDispatchThread) {
       action
     } else {
+      val ret = new AtomicReference[T]()
       //noinspection ConvertExpressionToSAM
       SwingUtilities.invokeAndWait(new Runnable {
-        override def run(): Unit = action
+        override def run(): Unit = ret.set(action)
       })
+      ret.get()
     }
   }
   
-  def writeAction(action: => Unit): Unit = {
+  def writeAction[T](action: => T): T = {
+    val ret = new AtomicReference[T]()
     //noinspection ConvertExpressionToSAM
     ApplicationManager.getApplication.invokeAndWait(new Runnable {
       override def run(): Unit = ApplicationManager.getApplication.runWriteAction(new Runnable {
-        override def run(): Unit = action
+        override def run(): Unit = ret.set(action)
       })
     }, ModalityState.NON_MODAL)
+    ret.get()
   }
 }

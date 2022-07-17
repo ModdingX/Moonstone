@@ -24,4 +24,9 @@ object Side {
       sides.reduce((s1, s2) => if (s1 == s2) s1 else COMMON)
     }
   }
+  
+  def reduceFrom(parent: Side, child: Side): Side = parent match {
+    case COMMON => child
+    case _ => parent
+  }
 }

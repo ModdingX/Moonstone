@@ -17,7 +17,7 @@ class ModComponent(unit: ModUnit) extends JPanel {
   private val spring = new SpringLayout
   setLayout(spring)
 
-  private val logo = new JImage(unit.image)
+  private val logo = new JImage(() => unit.image)
   add(logo)
   unit.url() match {
     case Some(url) =>
@@ -29,7 +29,7 @@ class ModComponent(unit: ModUnit) extends JPanel {
     // We might be called at any time where we are invalid again
     if (this.isValid) {
       Util.dispatch {
-        this.repaint()
+        logo.repaint()
       }
     }
   })
