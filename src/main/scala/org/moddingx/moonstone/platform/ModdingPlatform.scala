@@ -3,6 +3,7 @@ package org.moddingx.moonstone.platform
 import com.google.gson.JsonElement
 import com.intellij.openapi.Disposable
 import org.moddingx.moonstone.model.{FileEntry, Side}
+import org.moddingx.moonstone.platform.curse.CursePlatform
 
 import java.net.URI
 import java.util.Locale
@@ -33,7 +34,7 @@ trait PlatformAccess extends Disposable {
 
 object ModdingPlatform {
   
-  val CURSE: ModdingPlatform = ??? // TODO (replace liteloader with lite_loader when parsing modloader)
+  val CURSE: ModdingPlatform = CursePlatform
   val MODRINTH: ModdingPlatform = ??? // TODO
   
   val platforms: Seq[ModdingPlatform] = Seq(CURSE, MODRINTH)
