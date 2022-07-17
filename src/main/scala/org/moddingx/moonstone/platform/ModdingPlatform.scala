@@ -12,7 +12,7 @@ trait ModdingPlatform {
   val name: String
   
   def createAccess(list: ModList): PlatformAccess
-  def validateEntry(file: FileEntry): Option[FileEntry] = Some(entry)
+  def validateEntry(file: FileEntry): Option[FileEntry] = Some(file)
 }
 
 trait PlatformAccess extends Disposable {

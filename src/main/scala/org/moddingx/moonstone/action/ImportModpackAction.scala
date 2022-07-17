@@ -13,6 +13,7 @@ import java.io.IOException
 import java.nio.file.{FileSystems, Files, Paths}
 import scala.jdk.CollectionConverters._
 
+// TODO
 class ImportModpackAction extends AnAction {
 
   override def actionPerformed(event: AnActionEvent): Unit = {
@@ -32,7 +33,7 @@ class ImportModpackAction extends AnAction {
 
           val modlist = new JsonArray
           json.get("files").getAsJsonArray.asScala.map(_.getAsJsonObject).foreach(entry => {
-            modlist.add(new FileEntry(entry.get("projectID").getAsInt, entry.get("fileID").getAsInt, Side.COMMON, false).toJson)
+            modlist.add(new FileEntry(entry.get("projectID"), entry.get("fileID"), Side.COMMON, false).toJson)
           })
 
           val modlistPath = projectRoot.resolve("modlist.json")
@@ -54,6 +55,7 @@ class ImportModpackAction extends AnAction {
   }
   
   private def showMessage(project: Project, title: String, msg: String): Unit = {
+    //noinspection UnstableApiUsage
     MessagesService.getInstance().showMessageDialog(project, null, msg, title, Array("Ok"), 0, 0, null, null, false, null)
   }
 }

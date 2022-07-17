@@ -1,11 +1,13 @@
 package org.moddingx.moonstone.display.part
 
-import org.moddingx.moonstone.PackConfig
+import org.moddingx.moonstone.platform.ModList
+
 import java.awt.event.{KeyAdapter, KeyEvent}
 import java.awt.{Dimension, FlowLayout}
 import javax.swing.{JComponent, JLabel, JPanel, JTextField}
 
-class PackConfigSelection(rebuildAction: () => Unit) extends JPanel {
+// TODO
+class PackConfigSelection(list: ModList) extends JPanel {
 
   setLayout(new FlowLayout())
   
@@ -16,7 +18,7 @@ class PackConfigSelection(rebuildAction: () => Unit) extends JPanel {
     override def keyPressed(e: KeyEvent): Unit = {
       if (e.getKeyCode == KeyEvent.VK_ENTER || e.getKeyChar == '\n') {
         e.consume()
-        rebuildAction()
+//        rebuildAction()
       }
     }
   })
@@ -33,11 +35,11 @@ class PackConfigSelection(rebuildAction: () => Unit) extends JPanel {
     override def keyPressed(e: KeyEvent): Unit = {
       if (e.getKeyCode == KeyEvent.VK_ENTER || e.getKeyChar == '\n') {
         e.consume()
-        rebuildAction()
+//        rebuildAction()
       }
     }
   })
   add(loader)
   
-  def getCurrentConfig: PackConfig = PackConfig(minecraft.getText, loader.getText)
+//  def getCurrentConfig: PackConfig = PackConfig(minecraft.getText, loader.getText)
 }

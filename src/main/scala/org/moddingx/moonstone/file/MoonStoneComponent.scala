@@ -4,10 +4,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.{JBScrollPane, JBTabbedPane}
-import org.moddingx.moonstone.curse.ModList
-import org.moddingx.moonstone.{PackConfig, Util}
+import org.moddingx.moonstone.Util
 import org.moddingx.moonstone.display.ModListComponent
 import org.moddingx.moonstone.display.part.{PackConfigSelection, TopAlignLayout}
+import org.moddingx.moonstone.model.FileList
+import org.moddingx.moonstone.platform.ModList
 
 import java.awt.event.{KeyAdapter, KeyEvent}
 import java.util.concurrent.{ExecutorService, ScheduledThreadPoolExecutor}
@@ -15,26 +16,18 @@ import javax.swing._
 import javax.swing.event.ChangeEvent
 
 // TODO updateall button to update all non-locked deps
-class MoonStoneComponent(val project: Project, val file: VirtualFile, private val modify: () => Unit) extends JPanel with Disposable {
+class MoonStoneComponent private (val project: Project, private val fileList: FileList) extends JPanel with Disposable {
   
   private val rebuildExecutor: ExecutorService = new ScheduledThreadPoolExecutor(1)
   private val state = new StateHolder
   
-  private val modList = new ModList(project, file, this, modify)
-  private lazy val detectedConfig = Util.detectConfig(project)
+  private val modList: ModList = ModList.create(project, fileList, this)
   
   private val installedMods: ModListComponent = new ModListComponent
   private val dependencyMods: ModListComponent = new ModListComponent
   private val searchQuery: JTextField = new JTextField()
   private val searchMods: ModListComponent = new ModListComponent
-  private val selectionComponent: Option[PackConfigSelection] = detectedConfig match {
-    case Some(_) => None
-    case None => Some(new PackConfigSelection(() => rebuild {}))
-  }
-  
-  def currentConfig(): PackConfig = {
-    detectedConfig.orElse(selectionComponent.map(_.getCurrentConfig)).getOrElse(PackConfig("1.16.5", "Forge"))
-  }
+  private val selectionComponent: PackConfigSelection = new PackConfigSelection(modList)
   
   def rebuild(action: => Unit): Unit = {
     Util.waitForDispatch {
@@ -69,10 +62,7 @@ class MoonStoneComponent(val project: Project, val file: VirtualFile, private va
   
   setLayout(new TopAlignLayout)
   
-  selectionComponent match {
-    case Some(c) => add(c)
-    case None =>
-  }
+  add(selectionComponent)
   
   private val tabbedView: JTabbedPane = new JBTabbedPane()
   tabbedView.addChangeListener((_: ChangeEvent) => changeState {})
@@ -152,5 +142,12 @@ class MoonStoneComponent(val project: Project, val file: VirtualFile, private va
         case _ =>
       }
     }
+  }
+}
+
+object MoonStoneComponent {
+
+  def create(project: Project, file: VirtualFile, onModified: () => Unit): Option[MoonStoneComponent] = {
+    FileList.create(project, file, onModified).map(files => new MoonStoneComponent(project, files))
   }
 }

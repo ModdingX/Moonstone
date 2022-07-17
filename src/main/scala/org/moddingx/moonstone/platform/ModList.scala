@@ -187,6 +187,7 @@ class ModList private (
       case Some(latest) => updateFileList {
         files.add(latest, isInstalled = true)
       }
+      case None =>
     }
     
     override def uninstall(): Unit = ()
@@ -202,4 +203,6 @@ object ModList {
   def create(project: Project, file: VirtualFile, component: MoonStoneComponent, onModified: () => Unit): Option[ModList] = {
     FileList.create(project, file, onModified).map(files => new ModList(project, files, component))
   }
+  
+  def create(project: Project, fileList: FileList, component: MoonStoneComponent): ModList = new ModList(project, fileList, component)
 }

@@ -120,7 +120,7 @@ object FileList {
       val reader = new InputStreamReader(file.getInputStream)
       val FileListIO.ReadResult(data, needsUpdate) = FileListIO.load(reader)
       
-      val list = new FileList(project, file, onModified, data.platform, data.loader, data.mcVersion, data.installed.to(mutable.Set), data.dependencies.to(mutable.Set))
+      val list = new FileList(project, file, onModified, data.platform, data.loader, data.mcVersion, data.installed, data.dependencies)
       if (needsUpdate) {
         list.save()
       }

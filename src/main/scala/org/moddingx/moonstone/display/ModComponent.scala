@@ -19,7 +19,7 @@ class ModComponent(unit: ModUnit) extends JPanel {
 
   private val logo = new JImage(() => unit.image)
   add(logo)
-  unit.url() match {
+  unit.url match {
     case Some(url) =>
       logo.setCursor(new Cursor(Cursor.HAND_CURSOR))
       logo.addActionListener((_: ActionEvent) => BrowserUtil.browse(url))
@@ -76,7 +76,7 @@ class ModComponent(unit: ModUnit) extends JPanel {
       DefaultButton("Install", enabled = true, () => unit.install())
     }
     val sideButton = if (unit.canSetSide) {
-      Some(SelectButton[Side](unit.side(), Side.values, _.id, s => unit.setSide(s)))
+      Some(SelectButton[Side](unit.side, Side.values, _.id, s => unit.setSide(s)))
     } else {
       None
     }
