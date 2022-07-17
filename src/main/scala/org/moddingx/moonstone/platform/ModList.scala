@@ -155,8 +155,11 @@ class ModList private (
       }
       
       fileId match {
-        case Some(lockVersion) => updateFileList {
-          files.updateOrAddDependency(file.withFile(lockVersion).withLock(true))
+        case Some(lockVersion) => platform.validateEntry(file.withFile(lockVersion)) match {
+          case Some(lockFile) => updateFileList {
+            files.updateOrAddDependency(lockFile.withLock(true))
+          }
+          case None =>
         }
         case None => 
       }

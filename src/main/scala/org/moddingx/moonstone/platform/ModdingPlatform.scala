@@ -4,7 +4,7 @@ import com.google.gson.JsonElement
 import com.intellij.openapi.Disposable
 import org.moddingx.moonstone.model.{FileEntry, Side}
 
-import java.net.{URI, URL}
+import java.net.URI
 import java.util.Locale
 
 trait ModdingPlatform {
@@ -12,7 +12,8 @@ trait ModdingPlatform {
   val name: String
   
   def createAccess(list: ModList): PlatformAccess
-  def validateEntry(file: FileEntry): Option[FileEntry] = Some(file)
+  protected def validateVersion(file: FileEntry): Option[FileEntry] = Some(file)
+  final def validateEntry(file: FileEntry): Option[FileEntry] = validateVersion(file).map(_.withSide(file.side).withLock(file.locked))
 }
 
 trait PlatformAccess extends Disposable {
