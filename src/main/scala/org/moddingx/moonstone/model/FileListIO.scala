@@ -17,7 +17,7 @@ object FileListIO {
   val API: Int = 2
   
   private val latestMC = try {
-    val in: Reader = new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), StandardCharsets.UTF_8)
+    val in: Reader = new InputStreamReader(new URL("https://piston-meta.mojang.com/mc/game/version_manifest.json").openStream(), StandardCharsets.UTF_8)
     val json = Util.GSON.fromJson(in, classOf[JsonObject])
     in.close()
     json.get("latest").getAsJsonObject.get("release").getAsString
