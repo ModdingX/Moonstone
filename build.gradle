@@ -1,13 +1,31 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.moddingx.org' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.moddingx:LegacyJavaConverter:1.0.0'
+    }
+}
+
 plugins {
-    id 'java'
+    id 'java-library'
     id 'scala'
     id 'org.jetbrains.intellij' version '1.7.0'
     id 'maven-publish'
 }
 
+apply plugin: 'org.moddingx.lcj'
+
 group 'org.moddingx'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(11)
+
+configurations {
+    cursewrapper
+    apiElements.extendsFrom cursewrapper
+    cursewrapperResolvable.extendsFrom cursewrapper
+}
 
 repositories {
     mavenCentral()
@@ -15,8 +33,17 @@ repositories {
 }
 
 dependencies {
+    cursewrapper 'org.moddingx:CurseWrapper:2.1'
+}
+
+task convertDeps(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {
+    input = configurations.cursewrapper
+    languageLevel = 11
+}
+
+dependencies {
     implementation 'org.scala-lang:scala-library:2.13.8'
-    implementation 'org.moddingx:CurseWrapper:2.1'
+    implementation convertDeps.output()
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
