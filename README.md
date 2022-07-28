@@ -10,6 +10,8 @@ To install the plugin, see https://moddingx.org/jetbrains
 
 The `modlist.json` file can be consumed by tool like [ModGradle PackDev](https://github.com/ModdingX/ModGradle/blob/master/docs/packdev.md) to build and run a modpack.
 
+![](https://user-images.githubusercontent.com/63002502/181509686-7532fe4f-81c4-4beb-8e1f-20206bf7b646.png)
+
 ### modlist.json format
 
 The contents of the `modlist.json` file should be a json object with the following format:
