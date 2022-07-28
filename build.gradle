@@ -42,7 +42,7 @@ task convertDeps(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.13.8'
+    api 'org.scala-lang:scala-library:2.13.8'
     implementation convertDeps.output()
 }
 
