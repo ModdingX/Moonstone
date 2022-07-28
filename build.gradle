@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    cursewrapper 'org.moddingx:CurseWrapper:2.1'
+    cursewrapper 'org.moddingx:CurseWrapper:3.0'
 }
 
 task convertDeps(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {
