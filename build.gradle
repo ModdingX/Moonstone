@@ -50,7 +50,7 @@ dependencies {
 intellij {
     pluginName.set('Minecraft Moonstone')
     type.set('IC')
-    version.set('2022.1')
+    version.set(project.ideaVersion)
     downloadSources.set(true)
     
     plugins.set(['java', 'gradle'])
@@ -71,6 +71,7 @@ task fatjar(type: Jar) {
 build.dependsOn fatjar
 
 task configureFatJar {
+    dependsOn convertDeps
     doLast {
         configurations.runtimeClasspath.each { dep ->
             fatjar.from(project.zipTree(dep)) {
