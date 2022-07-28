@@ -1,6 +1,6 @@
 # Moonstone
 
-Moonstone is an IntelliJ plugin to manage CurseForge modlists in IntelliJ.
+Moonstone is an IntelliJ plugin to manage CurseForge or Modrinth modlists in IntelliJ.
 
 Files named `modlist.json` will be opened with Moonstone. These contain the modlist in json data but provide a nice GUI to manage the modlist.
 
