@@ -32,9 +32,11 @@ object FileListIO {
       
       if (json == null) return ReadResult(Data.FALLBACK, needsUpdate = true)
       
-      val api: Int =
-        if (json.isJsonArray) 1
-        else json.getAsJsonObject.get("api").getAsInt
+      val api: Int = json match {
+        case _ if json.isJsonArray => 1
+        case obj: JsonObject if obj.has("api") => obj.get("api").getAsInt
+        case _ => API
+      }
       
       val data: Data = api match {
         case 1 => loadAPI1(json.getAsJsonArray)
