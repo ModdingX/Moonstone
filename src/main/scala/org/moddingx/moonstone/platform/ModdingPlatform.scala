@@ -24,7 +24,7 @@ trait PlatformAccess extends Disposable {
   def projectLogo(project: JsonElement): Option[URI]
   def projectSite(project: JsonElement): Option[URI]
   def thirdPartyDownloads(project: JsonElement): Boolean
-  def defaultProjectSide(project: JsonElement): Side
+  def defaultFileSide(file: FileEntry): Side
   def versionName(file: FileEntry): String
   def versionByInput(file: FileEntry, input: String): Option[FileEntry]
 

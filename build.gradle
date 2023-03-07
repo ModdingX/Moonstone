@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.moddingx:LegacyJavaConverter:1.0.0'
+        classpath 'org.moddingx:LegacyJavaConverter:1.0.1'
     }
 }
 
@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    cursewrapper 'org.moddingx:CurseWrapper:3.0'
+    cursewrapper 'org.moddingx:CurseWrapper:3.1'
 }
 
 task convertDeps(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {

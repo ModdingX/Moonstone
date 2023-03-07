@@ -199,7 +199,7 @@ class ModList private (
 
     override def install(): Unit = latestFile match {
       case Some(latest) => updateFileList {
-        files.add(latest.withSide(localAccess.defaultProjectSide(projectId)), isInstalled = true)
+        files.add(latest.withSide(localAccess.defaultFileSide(latest)), isInstalled = true)
       }
       case None =>
     }

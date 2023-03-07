@@ -3,7 +3,7 @@ package org.moddingx.moonstone.platform.curse
 import com.google.gson.{JsonElement, JsonPrimitive}
 import org.moddingx.cursewrapper.api.CurseWrapper
 import org.moddingx.cursewrapper.api.request.FileFilter
-import org.moddingx.cursewrapper.api.response.{FileInfo, ModLoader, ProjectInfo, RelationType}
+import org.moddingx.cursewrapper.api.response.{FileEnvironment, FileInfo, ModLoader, ProjectInfo, RelationType}
 import org.moddingx.moonstone.model.{FileEntry, Side}
 import org.moddingx.moonstone.platform.{ModList, PlatformAccess, ProjectDependency, ResolvableDependency}
 
@@ -48,7 +48,11 @@ class CurseAccess(val list: ModList) extends PlatformAccess {
   override def projectDescription(project: JsonElement): String = getProject(project).summary()
   override def projectLogo(project: JsonElement): Option[URI] = Some(getProject(project).thumbnail())
   override def projectSite(project: JsonElement): Option[URI] = Some(getProject(project).website())
-  override def defaultProjectSide(project: JsonElement): Side = Side.COMMON
+  override def defaultFileSide(file: FileEntry): Side = getFile(file).environment() match {
+    case FileEnvironment.CLIENT => Side.CLIENT
+    case FileEnvironment.SERVER => Side.SERVER
+    case _ => Side.COMMON
+  }
   override def thirdPartyDownloads(project: JsonElement): Boolean = getProject(project).distribution()
   override def versionName(file: FileEntry): String = getFile(file).name()
   override def versionByInput(file: FileEntry, input: String): Option[FileEntry] = input.toIntOption.map(id => file.withFile(new JsonPrimitive(id)))

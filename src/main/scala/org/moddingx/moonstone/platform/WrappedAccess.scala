@@ -12,7 +12,7 @@ class WrappedAccess(access: PlatformAccess) extends PlatformAccess {
   override def projectLogo(project: JsonElement): Option[URI] = opt { access.projectLogo(project) }
   override def projectSite(project: JsonElement): Option[URI] = opt { access.projectSite(project) }
   override def thirdPartyDownloads(project: JsonElement): Boolean = wrap(true) { access.thirdPartyDownloads(project) }
-  override def defaultProjectSide(project: JsonElement): Side = wrap[Side](Side.COMMON) { access.defaultProjectSide(project) }
+  override def defaultFileSide(file: FileEntry): Side = wrap[Side](Side.COMMON) { access.defaultFileSide(file) }
   override def versionName(file: FileEntry): String = wrap("version-" + file.file) { access.versionName(file) }
   override def versionByInput(file: FileEntry, input: String): Option[FileEntry] = opt { access.versionByInput(file, input) }
 

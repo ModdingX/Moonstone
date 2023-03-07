@@ -21,7 +21,7 @@ class ModrinthAccess(val list: ModList) extends PlatformAccess {
   override def projectLogo(project: JsonElement): Option[URI] = cache.project(project.getAsString).icon
   override def projectSite(project: JsonElement): Option[URI] = cache.project(project.getAsString).url
   override def thirdPartyDownloads(project: JsonElement): Boolean = true
-  override def defaultProjectSide(project: JsonElement): Side = cache.project(project.getAsString).side
+  override def defaultFileSide(file: FileEntry): Side = cache.project(file.project.getAsString).side
   override def versionName(file: FileEntry): String = cache.version(file.file.getAsString).name
   override def versionByInput(file: FileEntry, input: String): Option[FileEntry] = {
     val ver = cache.version(input)
