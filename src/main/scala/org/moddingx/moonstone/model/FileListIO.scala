@@ -82,7 +82,7 @@ object FileListIO {
     
     if (json.has("installed")) {
       for (elem <- json.get("installed").getAsJsonArray.asScala if elem.isJsonObject; entry = elem.getAsJsonObject) {
-        FileEntry.fromJson(entry, api = 1).flatMap(platform.validateEntry) match {
+        FileEntry.fromJson(entry, api = 2).flatMap(platform.validateEntry) match {
           case Some(info) => installed.addOne(info)
           case None =>
         }
@@ -91,7 +91,7 @@ object FileListIO {
     
     if (json.has("dependencies")) {
       for (elem <- json.get("dependencies").getAsJsonArray.asScala if elem.isJsonObject; entry = elem.getAsJsonObject) {
-        FileEntry.fromJson(entry, api = 1).flatMap(platform.validateEntry) match {
+        FileEntry.fromJson(entry, api = 2).flatMap(platform.validateEntry) match {
           case Some(info) => dependencies.addOne(info)
           case None =>
         }
