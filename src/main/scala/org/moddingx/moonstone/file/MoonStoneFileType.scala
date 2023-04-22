@@ -19,7 +19,7 @@ object MoonStoneFileType extends FileType {
     override def getIconHeight: Int = imgHeight
     override def paintIcon(c: Component, g: Graphics, x: Int, y: Int): Unit = {
       val observer = Option(getImageObserver).getOrElse(c)
-      g.drawImage(this.getImage, x, y, 16, 16, observer)
+      g.drawImage(this.getImage, x, y, imgWidth, imgHeight, observer)
     }
   }
 }
