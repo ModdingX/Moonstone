@@ -34,7 +34,7 @@ trait PlatformAccess extends Disposable {
   def allFiles(project: JsonElement): Seq[FileEntry]
   def latestFrom(files: Set[FileEntry]): Option[FileEntry]
   def searchMods(query: String): Seq[JsonElement]
-  def dependencies(file: FileEntry): Seq[ResolvableDependency]
+  def dependencies(loader: String, file: FileEntry): Seq[ResolvableDependency]
   
   def metadataChange(): Unit
 }
@@ -54,18 +54,19 @@ object ModdingPlatform {
 
 sealed trait ResolvableDependency {
   
+  def modList: ModList
   def project: JsonElement
   def file: Option[FileEntry]
   def side: Side // Side in file entry is ignored
 }
 
-case class FileDependency(entry: FileEntry, override val side: Side = Side.COMMON) extends ResolvableDependency {
+case class FileDependency(entry: FileEntry, override val modList: ModList, override val side: Side = Side.COMMON) extends ResolvableDependency {
   
   override val project: JsonElement = entry.project
   override val file: Option[FileEntry] = Some(entry)
 }
 
-case class ProjectDependency(override val project: JsonElement, list: ModList, override val side: Side = Side.COMMON) extends ResolvableDependency {
+case class ProjectDependency(override val project: JsonElement, override val modList: ModList, override val side: Side = Side.COMMON) extends ResolvableDependency {
   
-  override lazy val file: Option[FileEntry] = list.access.latestFile(project)
+  override lazy val file: Option[FileEntry] = modList.access.latestFile(project)
 }

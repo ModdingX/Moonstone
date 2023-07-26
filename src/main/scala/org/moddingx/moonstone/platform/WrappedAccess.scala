@@ -21,7 +21,7 @@ class WrappedAccess(access: PlatformAccess) extends PlatformAccess {
   override def allFiles(project: JsonElement): Seq[FileEntry] = wrap(Seq[FileEntry]()) { access.allFiles(project) }
   override def latestFrom(files: Set[FileEntry]): Option[FileEntry] = opt { access.latestFrom(files) }
   override def searchMods(query: String): Seq[JsonElement] = wrap(Seq[JsonElement]()) { access.searchMods(query) }
-  override def dependencies(file: FileEntry): Seq[ResolvableDependency] = wrap(Seq[ResolvableDependency]()) { access.dependencies(file) }
+  override def dependencies(loader: String, file: FileEntry): Seq[ResolvableDependency] = wrap(Seq[ResolvableDependency]()) { access.dependencies(loader, file) }
 
 
   override def metadataChange(): Unit = access.metadataChange()

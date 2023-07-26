@@ -8,6 +8,8 @@ import scala.collection.mutable
 object DependencyLookup {
   
   def lookupDependencies(list: ModList, installed: Set[FileEntry], dependencies: Set[FileEntry]): Set[FileEntry] = {
+    case class ResolvedDependency(file: FileEntry, sideRequirement: Side)
+    
     val installedIds: Set[JsonElement] = installed.map(_.project)
     
     val dependencyMap = mutable.Map[JsonElement, mutable.Builder[ResolvableDependency, Seq[ResolvableDependency]]]()
@@ -24,7 +26,7 @@ object DependencyLookup {
         
         oldDependencyMap.get(dep.project) match {
           // Project was a dependency before, take already known version
-          case Some(oldDep) => dependencyMap.put(dep.project, Seq.newBuilder.addOne(FileDependency(oldDep)))
+          case Some(oldDep) => dependencyMap.put(dep.project, Seq.newBuilder.addOne(FileDependency(oldDep, list)))
           case None => dependencyMap.getOrElseUpdate(dep.project, Seq.newBuilder).addOne(dep)
         }
       }
@@ -32,7 +34,7 @@ object DependencyLookup {
     
     def collectDependencies(file: FileEntry, side: Side): Unit = {
       val cleanedFile = file.withSide(Side.COMMON).withLock(false)
-      for (dep <- list.access.dependencies(cleanedFile)) {
+      for (dep <- list.access.dependencies(list.loader, cleanedFile)) {
         addDependency(dep, side)
         val sideForTransitiveDeps = Side.reduceFrom(side, dep.side)
         dep.file match {
@@ -40,6 +42,22 @@ object DependencyLookup {
           case None =>
         }
       }
+    }
+
+    def mergeDependencies(list: ModList, dependencyMap: Map[JsonElement, Seq[ResolvableDependency]]): Set[ResolvedDependency] = {
+      dependencyMap.flatMap(entry => {
+        val (project, deps) = entry
+        val resolved: Seq[FileEntry] = deps
+          .flatMap(_.file)
+          .filter(file => file.project == project) // *should* be always true. Just to be sure
+          .map(_.withSide(Side.COMMON)) // platform may not set the site through the file entry
+          .map(_.withLock(false)) // platform may not set the lock
+        val dependencySide: Side = Side.merge(deps.map(_.side): _*)
+        list.access.latestFrom(resolved.toSet) match {
+          case Some(file) => Some(ResolvedDependency(file, dependencySide))
+          case None => None
+        }
+      }).toSet
     }
     
     for (installedFile <- installed) {
@@ -51,22 +69,4 @@ object DependencyLookup {
       Side.reduceFrom(dependencyState.getOrElse(dep.file.project, Side.COMMON), dep.sideRequirement)
     ))
   }
-  
-  def mergeDependencies(list: ModList, dependencyMap: Map[JsonElement, Seq[ResolvableDependency]]): Set[ResolvedDependency] = {
-    dependencyMap.flatMap(entry => {
-      val (project, deps) = entry
-      val resolved: Seq[FileEntry] = deps
-        .flatMap(_.file)
-        .filter(file => file.project == project) // *should* be always true. Just to be sure
-        .map(_.withSide(Side.COMMON)) // platform may not set the site through the file entry
-        .map(_.withLock(false)) // platform may not set the lock
-      val dependencySide: Side = Side.merge(deps.map(_.side): _*)
-      list.access.latestFrom(resolved.toSet) match {
-        case Some(file) => Some(ResolvedDependency(file, dependencySide))
-        case None => None
-      }
-    }).toSet
-  }
-
-  case class ResolvedDependency(file: FileEntry, sideRequirement: Side)
 }

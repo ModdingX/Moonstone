@@ -10,15 +10,6 @@ import javax.swing.SwingUtilities
 
 object Util {
   
-  val loaders: Seq[String] = Seq(
-    "forge",
-    "fabric",
-    "quilt",
-    "modloader",
-    "liteloader",
-    "rift"
-  )
-  
   val GSON: Gson = {
     val builder = new GsonBuilder()
     builder.disableHtmlEscaping()

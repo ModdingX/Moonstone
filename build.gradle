@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     api 'org.scala-lang:scala-library:2.13.10'
-    api 'org.moddingx:CurseWrapper:3.1'
+    api 'org.moddingx:CurseWrapper:3.2'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
@@ -37,7 +37,7 @@ patchPluginXml {
 }
 
 task fatjar(type: Jar) {
-    classifier "fatjar"
+    archiveClassifier = 'fatjar'
     manifest = jar.manifest
     with jar
 }
@@ -57,7 +57,7 @@ task configureFatJar {
 fatjar.dependsOn configureFatJar
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 build.dependsOn sourcesJar

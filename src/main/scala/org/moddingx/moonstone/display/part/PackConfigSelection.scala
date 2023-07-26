@@ -1,7 +1,7 @@
 package org.moddingx.moonstone.display.part
 
 import com.intellij.openapi.ui.Messages
-import org.moddingx.moonstone.Util
+import org.moddingx.moonstone.{LoaderConstants, Util}
 import org.moddingx.moonstone.platform.{ModList, ModdingPlatform}
 
 import java.awt.event.{KeyAdapter, KeyEvent}
@@ -51,6 +51,6 @@ class PackConfigSelection(list: ModList) extends JPanel {
   add(space2)
   
   add(new JLabel("Loader:"))
-  private val loader = ButtonHelper.editableSelection(list.loader, Util.loaders, (l, _) => list.loader = l)
+  private val loader = ButtonHelper.editableSelection(list.loader, LoaderConstants.SuggestedLoaders, (l, _) => list.loader = l)
   add(loader)
 }

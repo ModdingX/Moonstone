@@ -94,6 +94,6 @@ case class ModrinthVersionDependency(id: String) extends ModrinthDependency {
       new JsonPrimitive(version.projectId),
       new JsonPrimitive(version.id),
       Side.COMMON, false
-    ), side = access.cache.project(version.projectId).side))
+    ), access.list, side = access.cache.project(version.projectId).side))
   }
 }
