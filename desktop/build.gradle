@@ -1,0 +1,65 @@
+plugins {
+    id 'application'
+    id 'maven-publish'
+}
+
+application.mainClass = 'org.moddingx.moonstone.desktop.Main'
+
+configurations {
+    self // Dependencies on other projects that should not appear in the POM
+    compileOnly.extendsFrom self
+    runtimeClasspath.extendsFrom self
+}
+
+dependencies {
+    self project(':core')
+    api 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    runtimeOnly 'com.formdev:flatlaf:3.2'
+}
+
+jar {
+    dependsOn project(':core').jar
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+    from zipTree(project(':core').jar.archiveFile)
+}
+
+run {
+    args '/tmp/modlist.json'
+}
+
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
+    archiveClassifier = 'sources'
+    from project(':core').sourceSets.main.allSource
+    from project(':intellij').sourceSets.main.allSource
+    from sourceSets.main.allSource
+}
+build.dependsOn sourcesJar
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = rootProject.group
+            artifactId = rootProject.name
+            version = rootProject.version
+            artifact sourcesJar
+            artifact project(':intellij').jar
+            pom {
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url rootProject.file('../moddingx/maven')
+        }
+    }
+}

@@ -1,1 +1,5 @@
 rootProject.name = 'Moonstone'
+
+include('core')
+include('intellij')
+include('desktop')

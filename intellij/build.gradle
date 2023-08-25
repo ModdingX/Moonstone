@@ -1,0 +1,43 @@
+plugins {
+    id 'org.jetbrains.intellij' version '1.15.0'
+}
+
+dependencies {
+    compileOnly project(':core')
+}
+
+intellij {
+    pluginName.set('Minecraft Moonstone')
+    type.set('IC')
+    version.set(project.ideaVersion)
+    downloadSources.set(true)
+
+    plugins.set(['java', 'gradle'])
+}
+
+patchPluginXml {
+    pluginId.set(project.pluginId)
+    version.set(project.version)
+    sinceBuild.set(project.sinceBuild)
+    untilBuild.set(project.untilBuild)
+}
+
+jar {
+    archiveClassifier = 'intellij'
+    from zipTree(project(':core').jar.archiveFile)
+}
+
+tasks.register('configureJar') {
+    doLast {
+        configurations.runtimeClasspath.each { dep ->
+            jar.from(project.zipTree(dep)) {
+                exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
+                duplicatesStrategy DuplicatesStrategy.INCLUDE
+            }
+        }
+    }
+    outputs.upToDateWhen { false }
+}
+jar.dependsOn configureJar
+instrumentCode.dependsOn configureJar
+

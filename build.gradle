@@ -1,86 +1,19 @@
 plugins {
-    id 'java-library'
-    id 'scala'
-    id 'org.jetbrains.intellij' version '1.13.3'
-    id 'maven-publish'
+    id 'idea'
 }
 
-group 'org.moddingx'
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'scala'
+    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-repositories {
-    mavenCentral()
-    maven { url 'https://maven.moddingx.org/' }
-}
-
-dependencies {
-    api 'org.scala-lang:scala-library:2.13.10'
-    api 'org.moddingx:CurseWrapper:3.2'
-}
-
-// See https://github.com/JetBrains/gradle-intellij-plugin/
-intellij {
-    pluginName.set('Minecraft Moonstone')
-    type.set('IC')
-    version.set(project.ideaVersion)
-    downloadSources.set(true)
-    
-    plugins.set(['java', 'gradle'])
-}
-
-patchPluginXml {
-    pluginId.set(project.pluginId)
-    version.set(project.version)
-    sinceBuild.set(project.sinceBuild)
-    untilBuild.set(project.untilBuild)
-}
-
-task fatjar(type: Jar) {
-    archiveClassifier = 'fatjar'
-    manifest = jar.manifest
-    with jar
-}
-build.dependsOn fatjar
-
-task configureFatJar {
-    doLast {
-        configurations.runtimeClasspath.each { dep ->
-            fatjar.from(project.zipTree(dep)) {
-                exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
-                duplicatesStrategy DuplicatesStrategy.INCLUDE
-            }
-        }
-    }
-    outputs.upToDateWhen { false }
-}
-fatjar.dependsOn configureFatJar
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-}
-build.dependsOn sourcesJar
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifact fatjar
-            artifact sourcesJar
-            pom {
-                licenses {
-                    license {
-                        name = "The Apache License, Version 2.0"
-                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-                    }
-                }
-            }
-        }
-    }
     repositories {
-        maven {
-            url '../moddingx/maven'
-        }
+        mavenCentral()
+        maven { url = 'https://maven.moddingx.org' }
+    }
+    
+    dependencies {
+        api 'org.scala-lang:scala-library:2.13.10'
+        api 'org.moddingx:CurseWrapper:3.2'
     }
 }
