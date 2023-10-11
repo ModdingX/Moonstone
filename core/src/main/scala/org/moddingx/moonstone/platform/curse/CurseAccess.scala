@@ -4,7 +4,6 @@ import com.google.gson.{JsonElement, JsonPrimitive}
 import org.moddingx.cursewrapper.api.CurseWrapper
 import org.moddingx.cursewrapper.api.request.FileFilter
 import org.moddingx.cursewrapper.api.response.{FileEnvironment, FileInfo, ModLoader, ProjectInfo, RelationType}
-import org.moddingx.moonstone.LoaderConstants
 import org.moddingx.moonstone.model.{FileEntry, Side}
 import org.moddingx.moonstone.platform.{ModList, PlatformAccess, ProjectDependency, ResolvableDependency}
 
@@ -36,13 +35,11 @@ class CurseAccess(val list: ModList) extends PlatformAccess {
   )
   
   private def filter: FileFilter = {
-    val loaderStr = list.loader
-    val loader = ModLoader.get(if (loaderStr == "liteloader") "lite_loader" else loaderStr)
-    if (loader == ModLoader.UNKNOWN) {
-      FileFilter.version(list.mcVersion)
-    } else {
-      FileFilter.create(loader, list.mcVersion)
-    }
+    val loaders: Set[ModLoader] = list.supportedLoaders.map {
+      case "liteloader" => "lite_loader"
+      case loader => loader
+    }.map(ModLoader.get).removedAll(Set(ModLoader.UNKNOWN))
+    FileFilter.create(list.mcVersion, loaders.toSeq: _*)
   }
   
   override def projectName(project: JsonElement): String = getProject(project).name()
@@ -79,15 +76,10 @@ class CurseAccess(val list: ModList) extends PlatformAccess {
     for (res <- results) projects.put(res.projectId(), res)
     results.map(info => info.projectId())
   }).map(id => new JsonPrimitive(id))
-  
-  private def rawDependencies(file: FileEntry): Seq[ResolvableDependency] = getFile(file).dependencies().asScala.toSeq
+
+  override def dependencies(file: FileEntry): Seq[ResolvableDependency] = getFile(file).dependencies().asScala.toSeq
     .filter(dep => dep.`type`() == RelationType.REQUIRED)
     .map(dep => ProjectDependency(new JsonPrimitive(dep.projectId()), list))
-  
-  override def dependencies(loader: String, file: FileEntry): Seq[ResolvableDependency] = loader match {
-    case LoaderConstants.Quilt => rawDependencies(file).map(LoaderConstants.CurseQuiltHelper.transform)
-    case _ => rawDependencies(file)
-  }
 
   override def metadataChange(): Unit = {
     latestFiles.clear()

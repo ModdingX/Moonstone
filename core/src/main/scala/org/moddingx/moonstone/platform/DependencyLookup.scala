@@ -34,7 +34,7 @@ object DependencyLookup {
     
     def collectDependencies(file: FileEntry, side: Side): Unit = {
       val cleanedFile = file.withSide(Side.COMMON).withLock(false)
-      for (dep <- list.access.dependencies(list.loader, cleanedFile)) {
+      for (dep <- list.access.dependencies(cleanedFile).map(list.transformDependency)) {
         addDependency(dep, side)
         val sideForTransitiveDeps = Side.reduceFrom(side, dep.side)
         dep.file match {
@@ -50,7 +50,7 @@ object DependencyLookup {
         val resolved: Seq[FileEntry] = deps
           .flatMap(_.file)
           .filter(file => file.project == project) // *should* be always true. Just to be sure
-          .map(_.withSide(Side.COMMON)) // platform may not set the site through the file entry
+          .map(_.withSide(Side.COMMON)) // platform may not set the side through the file entry
           .map(_.withLock(false)) // platform may not set the lock
         val dependencySide: Side = Side.merge(deps.map(_.side): _*)
         list.access.latestFrom(resolved.toSet) match {

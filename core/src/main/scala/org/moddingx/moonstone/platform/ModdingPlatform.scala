@@ -34,7 +34,7 @@ trait PlatformAccess extends Destroyable {
   def allFiles(project: JsonElement): Seq[FileEntry]
   def latestFrom(files: Set[FileEntry]): Option[FileEntry]
   def searchMods(query: String): Seq[JsonElement]
-  def dependencies(loader: String, file: FileEntry): Seq[ResolvableDependency]
+  def dependencies(file: FileEntry): Seq[ResolvableDependency]
   
   def metadataChange(): Unit
 }

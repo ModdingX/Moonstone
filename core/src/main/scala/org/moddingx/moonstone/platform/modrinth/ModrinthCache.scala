@@ -100,7 +100,7 @@ class ModrinthCache(list: ModList) extends Destroyable {
     val versions = new JsonArray()
     versions.add(list.mcVersion)
     val loaders = new JsonArray()
-    loaders.add(list.loader)
+    list.supportedLoaders.foreach(loaders.add)
     Seq(
       "game_versions" -> versions,
       "loaders" -> loaders
@@ -116,7 +116,7 @@ class ModrinthCache(list: ModList) extends Destroyable {
     array.add(versions)
     
     val loaders = new JsonArray()
-    loaders.add("categories:" + list.loader)
+    list.supportedLoaders.foreach(loader => loaders.add("categories:" + loader))
     array.add(loaders)
     
     array

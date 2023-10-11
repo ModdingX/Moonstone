@@ -3,6 +3,7 @@ package org.moddingx.moonstone.platform
 import com.google.gson.{JsonElement, JsonParseException}
 import org.moddingx.moonstone.Util
 import org.moddingx.moonstone.display.{ModUnit, MoonStoneComponent}
+import org.moddingx.moonstone.loader.LoaderHelper
 import org.moddingx.moonstone.logic.{Destroyable, FileAccess, ProjectAccess}
 import org.moddingx.moonstone.model.{FileEntry, FileList, Side}
 import org.moddingx.moonstone.util.ImageResolver
@@ -18,6 +19,7 @@ class ModList private (
                       ) extends Destroyable {
 
   private val imageResolver = new ImageResolver()
+  private var loaderHelper = LoaderHelper(files.loader)
   
   @volatile
   private[this] var pAccess: PlatformAccess = _
@@ -32,9 +34,13 @@ class ModList private (
   def loader: String = files.loader
   def loader_=(loader: String): Unit = {
     files.loader = loader
+    loaderHelper = LoaderHelper(loader)
     if (pAccess != null) pAccess.metadataChange()
     updateFileList {}
   }
+  
+  def supportedLoaders: Set[String] = Set(loader) | loaderHelper.additionalSupportedLoaders(mcVersion)
+  def transformDependency(dependency: ResolvableDependency): ResolvableDependency = loaderHelper.transformDependency(platform, dependency)
 
   def mcVersion: String = files.mcVersion
   def mcVersion_=(mcVersion: String): Unit = {

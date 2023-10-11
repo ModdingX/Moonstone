@@ -1,7 +1,6 @@
 package org.moddingx.moonstone.platform.modrinth
 
 import com.google.gson.{JsonElement, JsonPrimitive}
-import org.moddingx.moonstone.LoaderConstants
 import org.moddingx.moonstone.model.{FileEntry, Side}
 import org.moddingx.moonstone.platform.{ModList, PlatformAccess, ResolvableDependency}
 
@@ -47,13 +46,7 @@ class ModrinthAccess(val list: ModList) extends PlatformAccess {
   }
   
   override def searchMods(query: String): Seq[JsonElement] = cache.search(query).map(p => new JsonPrimitive(p.id))
-  
-  private def rawDependencies(file: FileEntry): Seq[ResolvableDependency] = cache.version(file.file.getAsString).dependencies.flatMap(_.resolve(this))
-  
-  override def dependencies(loader: String, file: FileEntry): Seq[ResolvableDependency] = loader match {
-    case LoaderConstants.Quilt => rawDependencies(file).map(LoaderConstants.ModrinthQuiltHelper.transform)
-    case _ => rawDependencies(file)
-  }
+  override def dependencies(file: FileEntry): Seq[ResolvableDependency] = cache.version(file.file.getAsString).dependencies.flatMap(_.resolve(this))
 
   override def metadataChange(): Unit = cache.metadataChange()
   override def destroy(): Unit = cache.destroy()
