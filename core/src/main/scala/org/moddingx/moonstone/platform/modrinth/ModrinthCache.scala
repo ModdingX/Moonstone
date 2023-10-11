@@ -111,6 +111,10 @@ class ModrinthCache(list: ModList) extends Destroyable {
     // [["versions:1.16.5"], ["project_type:modpack"]]
     val array = new JsonArray()
     
+    val projectType = new JsonArray()
+    projectType.add("project_type:mod")
+    array.add(projectType)
+    
     val versions = new JsonArray()
     versions.add("versions:" + list.mcVersion)
     array.add(versions)
