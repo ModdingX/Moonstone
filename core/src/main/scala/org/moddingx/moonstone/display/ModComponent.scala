@@ -110,23 +110,38 @@ class ModComponent(unit: ModUnit) extends JPanel {
   }
   
   private val distribution = new JLabel()
-  if (!unit.allowsThirdPartyDownloads) {
-    distribution.setText(Character.toString(0x26D4))
+  private val allowsThirdPartyDownloads = unit.allowsThirdPartyDownloads
+  if (!allowsThirdPartyDownloads) {
+    distribution.setText(Character.toString(0x1F6C7))
     distribution.setToolTipText("3rd party access disabled.")
   }
   add(distribution)
   distribution.setFont(distribution.getFont.deriveFont(distribution.getFont.getSize2D * 1.6f))
   distribution.setForeground(Color.RED)
   spring.putConstraint(WEST, distribution, 10, EAST, logo)
+  
+  private val extraInfo = new JLabel()
+  private val hasExtraInformation = unit.extraInformation match {
+    case Some(info) =>
+      extraInfo.setText(Character.toString(0x1F6C8))
+      extraInfo.setToolTipText(info)
+      true
+    case None => false
+  }
+  add(extraInfo)
+  extraInfo.setFont(extraInfo.getFont.deriveFont(extraInfo.getFont.getSize2D * 1.6f))
+  extraInfo.setForeground(new Color(63, 63, 255))
+  spring.putConstraint(WEST, extraInfo, if (allowsThirdPartyDownloads) 0 else 5, EAST, distribution)
 
   private val title = new JLabel(unit.name)
   add(title)
   title.setFont(title.getFont.deriveFont(title.getFont.getSize2D * 1.75f))
-  spring.putConstraint(WEST, title, if (unit.allowsThirdPartyDownloads) 0 else 5, EAST, distribution)
+  spring.putConstraint(WEST, title, if (hasExtraInformation) 5 else 0, EAST, extraInfo)
   spring.putConstraint(NORTH, title, 0, NORTH, logo)
   buttons.headOption.foreach(b => spring.putConstraint(EAST, title, -12, WEST, b))
 
   spring.putConstraint(BASELINE, distribution, 0, BASELINE, title)
+  spring.putConstraint(BASELINE, extraInfo, 0, BASELINE, title)
 
   private val versionStr = new JLabel(unit.version.getOrElse(""))
   add(versionStr)

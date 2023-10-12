@@ -19,6 +19,7 @@ trait ModUnit {
   
   def versionLockSuggestion: Option[String]
   def allowsThirdPartyDownloads: Boolean
+  def extraInformation: Option[String]
 
   def isSimple: Boolean
   def isInstalled: Boolean

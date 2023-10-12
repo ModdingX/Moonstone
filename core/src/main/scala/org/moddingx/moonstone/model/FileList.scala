@@ -17,7 +17,7 @@ class FileList private (
                          private[this] var pMcVersion: String,
                          pInstalled: Set[FileEntry],
                          pDependencies: Set[FileEntry]
-                       ) {
+                       ) extends FileListAccess {
   
   private val installedMap: mutable.Map[JsonElement, FileEntry] = pInstalled.groupBy(_.project).view.mapValues(_.head).to(mutable.Map)
   private val dependencyMap: mutable.Map[JsonElement, FileEntry] = pDependencies.groupBy(_.project).view.mapValues(_.head).to(mutable.Map)
@@ -36,6 +36,8 @@ class FileList private (
 
   def hasProject(file: FileEntry): Boolean = hasProject(file.project)
   def hasProject(project: JsonElement): Boolean = installedMap.contains(project) || dependencyMap.contains(project)
+  def hasInstalledProject(file: FileEntry): Boolean = hasInstalledProject(file.project)
+  def hasInstalledProject(project: JsonElement): Boolean = installedMap.contains(project)
   def fileInfo(project: JsonElement): Option[FileEntry] = installedMap.get(project).orElse(dependencyMap.get(project))
   
   def removeProject(file: FileEntry): Unit = removeProject(file.project)
@@ -109,6 +111,21 @@ class FileList private (
     derived.onModified()
     derived
   }
+}
+
+sealed trait FileListAccess {
+  def installedFiles: Set[FileEntry]
+  def dependencyFiles: Set[FileEntry]
+  def allFiles: Set[FileEntry]
+
+  def hasProject(file: FileEntry): Boolean
+  def hasProject(project: JsonElement): Boolean
+  def hasInstalledProject(file: FileEntry): Boolean
+  def hasInstalledProject(project: JsonElement): Boolean
+  def fileInfo(project: JsonElement): Option[FileEntry]
+
+  def loader: String
+  def mcVersion: String
 }
 
 object FileList {

@@ -1,6 +1,6 @@
 package org.moddingx.moonstone.platform
 
-import com.google.gson.JsonElement
+import com.google.gson.{JsonElement, JsonPrimitive}
 import org.moddingx.moonstone.logic.Destroyable
 import org.moddingx.moonstone.model.{FileEntry, Side}
 import org.moddingx.moonstone.platform.curse.CursePlatform
@@ -14,6 +14,7 @@ trait ModdingPlatform {
   val name: String
   
   def createAccess(list: ModList): PlatformAccess
+  val constants: PlatformConstants
   protected def validateVersion(file: FileEntry): Option[FileEntry] = Some(file)
   final def validateEntry(file: FileEntry): Option[FileEntry] = validateVersion(file).map(_.withSide(file.side).withLock(file.locked))
 }

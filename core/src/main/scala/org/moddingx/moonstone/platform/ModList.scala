@@ -39,8 +39,8 @@ class ModList private (
     updateFileList {}
   }
   
-  def supportedLoaders: Set[String] = Set(loader) | loaderHelper.additionalSupportedLoaders(mcVersion)
-  def transformDependency(dependency: ResolvableDependency): ResolvableDependency = loaderHelper.transformDependency(platform, dependency)
+  def supportedLoaders: Set[String] = Set(loader) | loaderHelper.additionalSupportedLoaders(platform, files)
+  def transformDependency(dependency: ResolvableDependency): ResolvableDependency = loaderHelper.transformDependency(platform, files, dependency)
 
   def mcVersion: String = files.mcVersion
   def mcVersion_=(mcVersion: String): Unit = {
@@ -133,6 +133,8 @@ class ModList private (
     override def side: Side = file.side
     override def versionLockSuggestion: Option[String] = Some(file.file.toString)
     
+    override def extraInformation: Option[String] = ModList.this.loaderHelper.extraInformation(platform, files, file.project, Some(file))
+    
     override def isSimple: Boolean = false
     override def isInstalled: Boolean = installed
     override def canUpdate: Boolean = latestFile match {
@@ -193,6 +195,8 @@ class ModList private (
     override def version: Option[String] = None
     override def side: Side = Side.COMMON
     override def versionLockSuggestion: Option[String] = None
+
+    override def extraInformation: Option[String] = ModList.this.loaderHelper.extraInformation(platform, files, projectId, None)
     
     override def isSimple: Boolean = true
     override def isInstalled: Boolean = false

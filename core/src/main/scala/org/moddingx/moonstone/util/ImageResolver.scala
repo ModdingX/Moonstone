@@ -45,7 +45,10 @@ class ImageResolver {
   private def loadImageAsync(url: URL): Unit = {
     val in: InputStream = url.openStream()
     try {
-      val img = ImageIO.read(in)
+      val img = ImageIO.read(in) match {
+        case null => new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB)
+        case image => image
+      }
       val listeners: List[() => Unit] = LOCK.synchronized {
         loadedImages.put(url, img)
         val listeners = resolveListeners.get(url).map(_.toList).getOrElse(Nil)
