@@ -1,6 +1,7 @@
 package org.moddingx.moonstone.loader
 
 import com.google.gson.JsonElement
+import org.moddingx.moonstone.LoaderConstants
 import org.moddingx.moonstone.model.{FileEntry, FileListAccess}
 import org.moddingx.moonstone.platform.{ModdingPlatform, ResolvableDependency}
 import org.moddingx.moonstone.util.DependencyHelper
@@ -9,7 +10,7 @@ object ForgeLoaderHelper extends LoaderHelper {
   
   override def additionalSupportedLoaders(platform: ModdingPlatform, fileList: FileListAccess): Set[String] = {
     platform.constants.sinytraConnector match {
-      case Some(sinytraConnector) if fileList.hasInstalledProject(sinytraConnector) => Set("fabric")
+      case Some(sinytraConnector) if fileList.hasInstalledProject(sinytraConnector) => Set(LoaderConstants.Fabric)
       case _ => Set()
     }
   }
