@@ -24,4 +24,4 @@ jobs:
           -PmoddingxPassword=${{ secrets.PUBLISH_PASSWORD }} \
           build publish
       - name: 'Trigger Index Rebuild'
-        run: curl -v "https://jenkins.moddingx.org/buildByToken/build?job=Meta/plugin-index&token=${{ secrets.PLUGIN_INDEX_TRIGGER_TOKEN }}"
+        run: curl "https://jenkins.moddingx.org/buildByToken/build?job=Meta/plugin-index&token=${{ secrets.PLUGIN_INDEX_TRIGGER_TOKEN }}"
