@@ -5,10 +5,9 @@ import org.moddingx.moonstone.Util
 import org.moddingx.moonstone.platform.ModdingPlatform
 
 import java.io.{InputStreamReader, Reader, Writer}
-import java.net.URL
+import java.net.{URI, URL}
 import java.nio.charset.StandardCharsets
 import java.util.Locale
-import javax.annotation.WillClose
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
@@ -17,7 +16,7 @@ object FileListIO {
   val API: Int = 2
   
   private val latestMC = try {
-    val in: Reader = new InputStreamReader(new URL("https://piston-meta.mojang.com/mc/game/version_manifest.json").openStream(), StandardCharsets.UTF_8)
+    val in: Reader = new InputStreamReader(new URI("https://piston-meta.mojang.com/mc/game/version_manifest.json").toURL.openStream(), StandardCharsets.UTF_8)
     val json = Util.GSON.fromJson(in, classOf[JsonObject])
     in.close()
     json.get("latest").getAsJsonObject.get("release").getAsString
@@ -25,7 +24,7 @@ object FileListIO {
     case _: Exception => "1.16.5"
   }
   
-  def load(@WillClose reader: Reader): ReadResult = {
+  def load(reader: Reader): ReadResult = {
     try {
       val json = Util.GSON.fromJson(reader, classOf[JsonElement])
       reader.close()

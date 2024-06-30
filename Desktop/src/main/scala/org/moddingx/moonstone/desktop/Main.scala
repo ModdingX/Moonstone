@@ -12,12 +12,12 @@ import javax.swing.{JFrame, JOptionPane, UIManager, WindowConstants}
 
 object Main extends App {
 
-  val options: OptionParser = new OptionParser(false)
-  val specLight: OptionSpec[Void] = options.accepts("light", "Use light theme")
-  val specHelp: OptionSpec[Void] = options.accepts("help", "Show help")
-  val specFile: OptionSpec[Path] = options.nonOptions("The modlist file").withValuesConvertedBy(new PathConverter())
+  private val options: OptionParser = new OptionParser(false)
+  private val specLight: OptionSpec[Void] = options.accepts("light", "Use light theme")
+  private val specHelp: OptionSpec[Void] = options.accepts("help", "Show help")
+  private val specFile: OptionSpec[Path] = options.nonOptions("The modlist file").withValuesConvertedBy(new PathConverter())
   
-  val set: OptionSet = options.parse(args: _*)
+  private val set: OptionSet = options.parse(args: _*)
   if (set.has(specHelp) || set.valuesOf(specFile).isEmpty) {
     options.printHelpOn(System.out)
   } else if (set.valuesOf(specFile).size() != 1) {

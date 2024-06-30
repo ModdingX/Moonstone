@@ -1,7 +1,9 @@
 plugins {
     id 'idea'
 }
-
+allprojects {
+    group 'org.moddingx'
+}
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'scala'
@@ -13,7 +15,8 @@ subprojects {
     }
     
     dependencies {
-        api 'org.scala-lang:scala-library:2.13.12'
+        api 'org.scala-lang:scala-library:2.13.14'
+        api 'com.google.code.gson:gson:2.11.0'
         api 'org.moddingx:CurseWrapper:4.0'
     }
 }

@@ -1,9 +1,9 @@
 plugins {
-    id 'org.jetbrains.intellij' version '1.15.0'
+    id 'org.jetbrains.intellij' version '1.17.4'
 }
 
 dependencies {
-    compileOnly project(':core')
+    compileOnly project(':Core')
 }
 
 intellij {
@@ -24,7 +24,7 @@ patchPluginXml {
 
 jar {
     archiveClassifier = 'intellij'
-    from zipTree(project(':core').jar.archiveFile)
+    from zipTree(project(':Core').jar.archiveFile)
 }
 
 tasks.register('configureJar') {

@@ -1,0 +1,27 @@
+name: 'Publish'
+on:
+  create:
+    branches:
+      - 'master'
+
+jobs:
+  publish:
+    if: startsWith(github.repository, 'ModdingX/') # don't run in forks
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+      - name: 'Setup Java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: 'Build'
+        run: |
+          ./gradlew \
+          -Pversion=${{ github.ref_name }} \
+          -PmoddingxUsername=${{ secrets.PUBLISH_USER }} \
+          -PmoddingxPassword=${{ secrets.PUBLISH_PASSWORD }} \
+          build publish
+      - name: 'Trigger Index Rebuild'
+        run: curl -v "https://jenkins.moddingx.org/buildByToken/build?job=Meta/plugin-index&token=${{ secrets.PLUGIN_INDEX_TRIGGER_TOKEN }}"

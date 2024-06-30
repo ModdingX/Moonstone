@@ -1,6 +1,6 @@
 package org.moddingx.moonstone
 
-import com.google.gson.{Gson, GsonBuilder, JsonElement, JsonObject}
+import com.google.gson.{Gson, GsonBuilder, JsonElement, JsonObject, Strictness}
 
 import java.awt.EventQueue
 import java.io.InputStream
@@ -12,7 +12,7 @@ object Util {
   val GSON: Gson = {
     val builder = new GsonBuilder()
     builder.disableHtmlEscaping()
-    builder.setLenient()
+    builder.setStrictness(Strictness.LENIENT)
     builder.setPrettyPrinting()
     builder.create()
   }

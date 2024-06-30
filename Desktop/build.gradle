@@ -12,17 +12,17 @@ configurations {
 }
 
 dependencies {
-    self project(':core')
+    self project(':Core')
     api 'net.sf.jopt-simple:jopt-simple:5.0.4'
-    runtimeOnly 'com.formdev:flatlaf:3.2'
+    runtimeOnly 'com.formdev:flatlaf:3.4.1'
 }
 
 jar {
-    dependsOn project(':core').jar
+    dependsOn project(':Core').jar
     manifest {
         attributes 'Main-Class': application.mainClass.get()
     }
-    from zipTree(project(':core').jar.archiveFile)
+    from zipTree(project(':Core').jar.archiveFile)
 }
 
 run {
@@ -32,8 +32,8 @@ run {
 tasks.register('sourcesJar', Jar) {
     dependsOn classes
     archiveClassifier = 'sources'
-    from project(':core').sourceSets.main.allSource
-    from project(':intellij').sourceSets.main.allSource
+    from project(':Core').sourceSets.main.allSource
+    from project(':Intellij').sourceSets.main.allSource
     from sourceSets.main.allSource
 }
 build.dependsOn sourcesJar
@@ -46,7 +46,7 @@ publishing {
             artifactId = rootProject.name
             version = rootProject.version
             artifact sourcesJar
-            artifact project(':intellij').jar
+            artifact project(':Intellij').jar
             pom {
                 licenses {
                     license {
@@ -59,7 +59,9 @@ publishing {
     }
     repositories {
         maven {
-            url rootProject.file('../moddingx/maven')
+            name 'moddingx'
+            url 'https://maven.moddingx.org/release'
+            credentials(PasswordCredentials)
         }
     }
 }
