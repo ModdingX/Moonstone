@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters._
 
 class CurseAccess(val list: ModList) extends PlatformAccess {
 
-  private val api = new CurseWrapper(URI.create("https://curse.melanx.de"))
+  private val api = new CurseWrapper(URI.create("https://curse.moddingx.org"))
   private val projects = mutable.Map[Int, ProjectInfo]()
   private val files = mutable.Map[(Int, Int), FileInfo]()
   private val latestFiles = mutable.Map[Int, FileInfo]()
