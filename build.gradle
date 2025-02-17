@@ -7,7 +7,7 @@ allprojects {
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'scala'
-    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
     repositories {
         mavenCentral()
@@ -15,8 +15,8 @@ subprojects {
     }
     
     dependencies {
-        api 'org.scala-lang:scala-library:2.13.14'
-        api 'com.google.code.gson:gson:2.11.0'
-        api 'org.moddingx:CurseWrapper:4.0'
+        api 'org.scala-lang:scala-library:2.13.16'
+        api 'com.google.code.gson:gson:2.12.1'
+        api 'org.moddingx:CurseWrapper:5.0'
     }
 }

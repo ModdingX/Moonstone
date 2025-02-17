@@ -14,7 +14,7 @@ configurations {
 dependencies {
     self project(':Core')
     api 'net.sf.jopt-simple:jopt-simple:5.0.4'
-    runtimeOnly 'com.formdev:flatlaf:3.4.1'
+    runtimeOnly 'com.formdev:flatlaf:3.5.4'
 }
 
 jar {
@@ -23,10 +23,6 @@ jar {
         attributes 'Main-Class': application.mainClass.get()
     }
     from zipTree(project(':Core').jar.archiveFile)
-}
-
-run {
-    args '/tmp/modlist.json'
 }
 
 tasks.register('sourcesJar', Jar) {

@@ -1,25 +1,29 @@
 plugins {
-    id 'org.jetbrains.intellij' version '1.17.4'
+    id 'org.jetbrains.intellij.platform' version '2.2.1'
+}
+
+repositories {
+    intellijPlatform { defaultRepositories() }
 }
 
 dependencies {
     compileOnly project(':Core')
+    intellijPlatform {
+        create('IC', project.ideaVersion)
+        bundledPlugins('com.intellij.java', 'com.intellij.gradle')
+    }
 }
 
-intellij {
-    pluginName.set('Minecraft Moonstone')
-    type.set('IC')
-    version.set(project.ideaVersion)
-    downloadSources.set(true)
-
-    plugins.set(['java', 'gradle'])
-}
-
-patchPluginXml {
-    pluginId.set(project.pluginId)
-    version.set(project.version)
-    sinceBuild.set(project.sinceBuild)
-    untilBuild.set(project.untilBuild)
+intellijPlatform {
+    pluginConfiguration {
+        id = project.pluginId
+        name = 'Minecraft Moonstone'
+        version = project.version
+        ideaVersion {
+            sinceBuild = project.sinceBuild
+            untilBuild = project.untilBuild
+        }
+    }
 }
 
 jar {
@@ -40,4 +44,3 @@ tasks.register('configureJar') {
 }
 jar.dependsOn configureJar
 instrumentCode.dependsOn configureJar
-

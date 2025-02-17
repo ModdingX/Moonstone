@@ -1,6 +1,6 @@
 <idea-plugin>
     <name>Minecraft Moonstone</name>
-    <vendor email="invalid@invalid.invalid" url="https://github.com/ModdingX/Moonstone">noeppi_noeppi</vendor>
+    <vendor email="invalid@invalid.invalid" url="https://github.com/ModdingX/Moonstone">ModdingX</vendor>
 
     <description>Create mod lists for curse and modrinth modpacks from inside the IDE</description>
     <change-notes>Change notes.</change-notes>
